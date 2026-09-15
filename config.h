@@ -4,7 +4,7 @@
 // DCF77 Ausgang
 #define DCF_PIN 12
 
-// WLAN
+// NTP / Zeitzone - Werkseinstellungen
 static const char* const NTP_SERVER_1 = "pool.ntp.org";
 static const char* const NTP_SERVER_2 = "time.nist.gov";
 static const char* const TIMEZONE_INFO = "CET-1CEST,M3.5.0,M10.5.0/3";

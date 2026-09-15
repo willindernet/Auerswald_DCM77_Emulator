@@ -1,3 +1,4 @@
+#define DEBUG_SERIAL 0
 #include "config.h"
 #include "ntp.h"
 #include "dcf77.h"
@@ -12,7 +13,7 @@ void setup()
     // DCF77-Ausgang initialisieren
     initDCF();
 
-    Serial.begin(115200);
+    if (DEBUG_SERIAL) Serial.begin(115200);
 
     // WLAN verbinden oder Access Point starten
     bool connected = connectWiFi();
@@ -33,17 +34,27 @@ void loop()
 {
     struct tm now;
 
-    // Wenn noch keine NTP-Zeit vorhanden ist,
-    // nichts senden.
+    // Eine vorhandene ESP32-Systemzeit ist allein kein Beweis für eine
+    // erfolgreiche NTP-Synchronisation. Nach einem Neustart kann noch eine
+    // alte/erhaltene Zeit vorhanden sein. DCF77 darf deshalb ausschließlich
+    // nach erfolgreicher NTP-Synchronisation dieses Starts senden.
+    if (!isTimeValid())
+    {
+        dcfInactive();
+        delay(1000);
+        return;
+    }
+
     if (!getLocalTime(&now))
     {
+        dcfInactive();
         delay(1000);
         return;
     }
 
     // Log aktuelle Zeit
-    Serial.println();
-    Serial.printf(
+    if (DEBUG_SERIAL) Serial.println();
+    if (DEBUG_SERIAL) Serial.printf(
         "%02d:%02d:%02d\n",
         now.tm_hour,
         now.tm_min,

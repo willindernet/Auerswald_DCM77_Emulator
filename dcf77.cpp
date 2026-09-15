@@ -1,3 +1,4 @@
+#define DEBUG_SERIAL 0
 #include "dcf77.h"
 #include "timezone.h"
 #include "config.h"
@@ -86,7 +87,7 @@ void sendBit1()
 
     delay(800);
 
-    Serial.print("1");
+    if (DEBUG_SERIAL) Serial.print("1");
 }
 
 
@@ -107,7 +108,7 @@ void sendBit0()
 
     delay(900);
 
-    Serial.print("0");
+    if (DEBUG_SERIAL) Serial.print("0");
 }
 
 

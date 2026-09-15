@@ -9,8 +9,15 @@ void waitForTime();
 
 bool isWiFiConnected();
 bool isAccessPointMode();
+bool isTimeValid();
 
 void saveWiFiCredentials(const String &ssid, const String &password);
 void clearWiFiCredentials();
+
+// NTP / Zeitzone
+void loadTimeConfiguration(String &server1, String &server2, String &timezone);
+void saveTimeConfiguration(const String &server1, const String &server2, const String &timezone);
+void resetTimeConfiguration();
+void getTimeConfiguration(String &server1, String &server2, String &timezone);
 
 #endif

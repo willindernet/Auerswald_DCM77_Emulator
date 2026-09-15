@@ -149,6 +149,33 @@ Enthält:
 - Berechnung des DCF77-A1-Bits
 - Erkennung der bevorstehenden Sommer-/Winterzeitumstellung
 
+## Direkte NTP-Zeitsynchronisation
+
+Die aktuelle Version verwendet eine direkte NTP-Anfrage über UDP Port 123.
+Die empfangene NTP-Zeit wird nach erfolgreicher Prüfung direkt in die
+ESP32-Systemzeit übernommen. Dadurch ist der Betrieb unabhängig von der
+automatischen ESP32-SNTP-Synchronisation.
+
+Die DCF77-Ausgabe wird nur freigegeben, wenn seit dem aktuellen Start eine
+erfolgreiche NTP-Synchronisation durchgeführt wurde. Eine eventuell noch
+vorhandene Systemzeit allein reicht nicht aus.
+
+## Zeitzonen
+
+Die Weboberfläche enthält eine Auswahl gängiger Zeitzonen aus Europa,
+Nord- und Südamerika, Afrika, Asien sowie Australien und Neuseeland.
+Zusätzlich kann weiterhin eine eigene POSIX-TZ-Zeichenkette eingetragen werden.
+
+Hinweis: Die DCF77-A1-Berechnung folgt weiterhin der deutschen DCF77-Regel
+für die Ankündigung der europäischen Sommer-/Winterzeitumstellung. Die
+Zeitzonenauswahl ändert die lokale Zeitbasis; die bestehende DCF77-Telegramm-
+logik wurde ansonsten nicht verändert.
+
+## Serielle Ausgabe
+
+Die Debug-Ausgaben auf der seriellen Konsole sind in der aktuellen Version
+deaktiviert. Die Funktionalität des Emulators ist davon unabhängig.
+
 ## Aktueller Entwicklungsstand
 - Verbinden mit fest konfiguriertem WLAN
 - Zeit über NTP bestimmen
@@ -218,3 +245,40 @@ Enthält den HTTP-Server und die WLAN-Konfigurationsseite.
 Die Dateien heißen bewusst `httpserver.*`. Dadurch gibt es keine
 Namenskollision mit Include-Guards einer möglichen `WebServer.h`-
 Bibliothek.
+
+
+## NTP- und Zeitzonenkonfiguration
+
+Die NTP-Server und die POSIX-Zeitzone können über die Weboberfläche konfiguriert werden. Die Werte werden dauerhaft in NVS gespeichert. Über „Werkseinstellungen für NTP / Zeitzone laden“ werden die Werte aus `config.h` wieder verwendet. Die Speicherung erfolgt mit der ESP32-Preferences/NVS-Funktion. citeturn0search0
+
+
+### NTP / Zeitzone
+
+NTP-Server und Zeitzone werden dauerhaft in Preferences gespeichert. Beim Start wird `configTzTime()` verwendet, damit die gespeicherten NTP-Server und die POSIX-Zeitzone gemeinsam an den ESP32-SNTP-Dienst übergeben werden.
+
+
+### NTP-Initialisierung
+Die konfigurierten NTP-Server werden mit `configTime()` gesetzt; die konfigurierbare POSIX-Zeitzone wird anschließend über `TZ`/`tzset()` gesetzt. Damit entspricht die Initialisierung wieder der zuvor nachweislich funktionierenden Variante.
+
+### NTP-Diagnose (v6)
+
+Die serielle Konsole gibt zusätzlich WLAN-IP, Gateway, DNS-Server,
+DNS-Auflösung der konfigurierten NTP-Server, die tatsächlich an SNTP
+übergebenen Server sowie den SNTP-Synchronisationsstatus aus.
+
+
+## v8 – direkte NTP-Zeitsynchronisation
+
+v8 verwendet nach erfolgreicher WLAN- und DNS-Verbindung eine direkte NTP-Anfrage über UDP/123. Die gültige NTP-Serverantwort wird ausgewertet und die ESP32-Systemzeit mit `settimeofday()` gesetzt. Die bisherige ESP32-SNTP-Automatik über `configTime()` wird in v8 nicht benötigt. Server 2 dient als Fallback, falls Server 1 keine gültige Antwort liefert. Anschließend wird die konfigurierte POSIX-Zeitzone über `TZ`/`tzset()` aktiviert. Die DCF77-Telegrammlogik und deren Timing bleiben unverändert.
+
+
+## v9 – Sicherheitslogik für die DCF77-Ausgabe
+
+Die DCF77-Ausgabe wird ab v9 ausschließlich freigegeben, wenn seit dem aktuellen
+Start eine direkte NTP-Synchronisation erfolgreich war. `getLocalTime()` allein
+wird nicht mehr als Freigabekriterium verwendet, da die ESP32-Systemuhr nach einem
+Neustart noch eine alte/erhaltene Zeit enthalten kann.
+
+Wenn keine WLAN-Zugangsdaten vorhanden sind, die WLAN-Verbindung fehlschlägt oder
+die NTP-Synchronisation fehlschlägt, bleibt der DCF77-Ausgang inaktiv. Der
+Access-Point und die Weboberfläche bleiben zur Neueinrichtung verfügbar.
