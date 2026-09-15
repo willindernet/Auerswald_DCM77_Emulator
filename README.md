@@ -103,6 +103,9 @@ Nicht verwendete Bits werden auf 0 gesetzt.
     ├── timezone.cpp
     ├── timezone.h
     │
+    ├── httpserver.cpp
+    ├── httpserver.h
+    │
     └── README.md
 
 ### Auerswald_DCM77_Emulator.ino
@@ -160,3 +163,58 @@ Enthält:
 - WLAN konfigurierbar
 - Zeitzone konfigurierbar
 - NTP Server konfigurierbar
+
+## WLAN-Konfiguration
+
+Die WLAN-Zugangsdaten werden dauerhaft im nichtflüchtigen Speicher
+(NVS) des ESP32 mit `Preferences` gespeichert.
+
+Beim Start versucht der ESP32 zunächst, sich mit den gespeicherten
+Zugangsdaten zu verbinden.
+
+Wenn keine Zugangsdaten gespeichert sind oder die Verbindung innerhalb
+des konfigurierten Zeitlimits nicht gelingt, wird automatisch der
+Access Point
+
+    DCM77-Setup
+
+gestartet.
+
+Der Access Point verwendet standardmäßig die Adresse:
+
+    http://192.168.4.1
+
+Über die Webseite können SSID und Passwort eingegeben und gespeichert
+werden. Anschließend startet der ESP32 automatisch neu.
+
+Der HTTP-Server läuft in einem eigenen FreeRTOS-Task, damit die
+DCF77-Zeitübertragung im Hauptprogramm nicht durch die Bearbeitung von
+HTTP-Anfragen verändert wird.
+
+## HTTP-Server
+
+Der HTTP-Server wird sowohl im normalen WLAN-Betrieb als auch im
+Access-Point-Modus automatisch gestartet.
+
+Im normalen WLAN-Betrieb ist die Webseite unter der vom Router
+vergebenen IP-Adresse erreichbar.
+
+Die Webseite bietet:
+
+- Anzeige des WLAN-Status
+- Anzeige der IP-Adresse
+- Anzeige der Signalstärke im normalen WLAN-Betrieb
+- Eingabe einer neuen SSID
+- Eingabe eines neuen Passworts
+- Löschen der gespeicherten WLAN-Konfiguration
+- automatischen Neustart nach Änderung der Konfiguration
+
+## Dateien
+
+### httpserver.cpp / httpserver.h
+
+Enthält den HTTP-Server und die WLAN-Konfigurationsseite.
+
+Die Dateien heißen bewusst `httpserver.*`. Dadurch gibt es keine
+Namenskollision mit Include-Guards einer möglichen `WebServer.h`-
+Bibliothek.

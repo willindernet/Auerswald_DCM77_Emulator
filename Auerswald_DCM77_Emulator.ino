@@ -1,25 +1,40 @@
 #include "config.h"
 #include "ntp.h"
 #include "dcf77.h"
+#include "httpserver.h"
+
+#include <Arduino.h>
+#include <time.h>
+
 
 void setup()
 {
+    // DCF77-Ausgang initialisieren
     initDCF();
 
     Serial.begin(115200);
 
-    connectWiFi();
+    // WLAN verbinden oder Access Point starten
+    bool connected = connectWiFi();
 
-    initNTP();
+    // Webserver immer starten
+    initHttpServer();
 
-    waitForTime();
+    // NTP nur bei bestehender WLAN-Verbindung
+    if (connected)
+    {
+        initNTP();
+        waitForTime();
+    }
 }
+
 
 void loop()
 {
     struct tm now;
 
-    // Überprüfen der Variable now
+    // Wenn noch keine NTP-Zeit vorhanden ist,
+    // nichts senden.
     if (!getLocalTime(&now))
     {
         delay(1000);
@@ -35,13 +50,17 @@ void loop()
         now.tm_sec
     );
 
-    // Nur am Anfang einer Minute neues Telegramm erzeugen
+    // Telegramm erzeugen
+    //
+    // WICHTIG:
+    // Die vorhandene Logik inklusive +120
+    // bleibt in createDCF77Telegram() erhalten.
     createDCF77Telegram(now);
 
-    // Warten auf Sekunde "0"
+    // Warten auf Sekunde 00
     waitForNextMinute();
 
-    // Hier werden die Bits der Zeitinformation geschickt
+    // 59 Bits senden
     for (int second = 0; second < 59; second++)
     {
         if (dcfBits[second])
