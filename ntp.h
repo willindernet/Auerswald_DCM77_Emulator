@@ -9,7 +9,12 @@ void waitForTime();
 
 bool isWiFiConnected();
 bool isAccessPointMode();
+bool hasWiFiCredentials();
 bool isTimeValid();
+
+// Zyklische NTP-Sicherheitsüberwachung
+bool isNtpSynchronizationFresh();
+bool refreshNtpSynchronization();
 
 void saveWiFiCredentials(const String &ssid, const String &password);
 void clearWiFiCredentials();

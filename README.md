@@ -99,6 +99,8 @@ Nicht verwendete Bits werden auf 0 gesetzt.
     │
     ├── ntp.cpp
     ├── ntp.h
+    ├── watchdog.cpp
+    ├── watchdog.h
     │
     ├── timezone.cpp
     ├── timezone.h
@@ -282,3 +284,51 @@ Neustart noch eine alte/erhaltene Zeit enthalten kann.
 Wenn keine WLAN-Zugangsdaten vorhanden sind, die WLAN-Verbindung fehlschlägt oder
 die NTP-Synchronisation fehlschlägt, bleibt der DCF77-Ausgang inaktiv. Der
 Access-Point und die Weboberfläche bleiben zur Neueinrichtung verfügbar.
+
+
+### Zyklische NTP-Sicherheitsprüfung
+
+In `config.h` kann mit
+
+`const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;`
+
+die maximal zulässige Zeit seit der letzten erfolgreichen NTP-Synchronisation
+eingestellt werden. Nach Ablauf dieses Zeitraums wird die DCF77-Ausgabe
+gesperrt. Der ESP32 versucht anschließend automatisch, die WLAN-Verbindung
+wiederherzustellen und eine direkte UDP-NTP-Synchronisation mit dem ersten
+oder zweiten konfigurierten NTP-Server durchzuführen. Erst nach Erfolg wird
+die DCF77-Ausgabe wieder freigegeben.
+
+## NTP-Watchdog
+
+Die NTP-Überwachung läuft in einem eigenen FreeRTOS-Task und damit unabhängig
+vom Arduino-Mainloop. `NTP_SYNC_TIMEOUT_SECONDS` ist standardmäßig auf 6 Stunden,
+`NTP_WATCHDOG_INTERVAL_MS` auf 60 Sekunden gesetzt.
+
+Wird die Synchronisation ungültig, wird GPIO12 sofort auf LOW gesetzt und ein
+laufendes DCF77-Telegramm abgebrochen. Erst eine erfolgreiche erneute
+NTP-Synchronisation gibt die DCF77-Ausgabe wieder frei.
+
+Die bestehende DCF77-Telegrammlogik einschließlich `t += 120`, Bit-Timing und
+Ausgabe ohne 77,5-kHz-Träger bleibt unverändert.
+
+
+## v13 Watchdog-Test
+
+Testwerte: `NTP_SYNC_TIMEOUT_SECONDS = 60UL` und
+`NTP_WATCHDOG_INTERVAL_MS = 5000UL`.
+
+Bei Ablauf wird ein laufendes Telegramm sofort abgebrochen. Eine erfolgreiche
+NTP-Recovery gibt DCF77 wieder frei, löscht aber nicht das Abbruchereignis.
+Dieses wird erst unmittelbar vor einem neuen Telegramm gelöscht.
+
+Für Diagnose kann `DEBUG_SERIAL` testweise auf `1` gesetzt werden. Die
+Watchdog-Meldungen enthalten die Uptime seit dem Einschalten sowie Timeout-
+und Recovery-Zeitpunkte.
+
+## v14 Minutenzyklus
+
+Nach einem Watchdog-Abbruch wird der aktuelle DCF77-Zyklus sofort beendet.
+Der nächste `loop()`-Durchlauf beginnt einen neuen Zyklus. Dadurch kann ein
+abgebrochenes Telegramm nicht in einen falschen Minutenzyklus hineinwirken.
+Die bestehende DCF77-Telegrammlogik bleibt unverändert.

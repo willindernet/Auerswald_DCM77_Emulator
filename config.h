@@ -16,3 +16,9 @@ static const char* const AP_SSID = "DCM77-Setup";
 static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;
 
 #endif
+
+// Maximale Zeit seit der letzten erfolgreichen NTP-Synchronisation.
+const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;
+
+// Prüfintervall des unabhängigen NTP-Watchdogs.
+static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;

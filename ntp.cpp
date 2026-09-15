@@ -14,6 +14,13 @@ static bool wifiConnected = false;
 static bool accessPointMode = false;
 static bool directTimeSynchronized = false;
 
+// Zeitpunkt der letzten erfolgreichen direkten NTP-Synchronisation.
+// millis() ist für die 6-Stunden-Überwachung ausreichend und wird über
+// unsigned-Arithmetik auch bei Überlauf korrekt verglichen.
+static unsigned long lastSuccessfulNtpSync = 0;
+static bool ntpSyncTimestampValid = false;
+
+
 
 // ------------------------------------------------------------
 // WLAN-Zugangsdaten aus NVS laden
@@ -101,6 +108,8 @@ bool connectWiFi()
 {
     // Bei jedem Neustart zunächst grundsätzlich keine gültige NTP-Zeit annehmen.
     directTimeSynchronized = false;
+    ntpSyncTimestampValid = false;
+    lastSuccessfulNtpSync = 0;
 
     String ssid;
     String password;
@@ -340,6 +349,8 @@ static bool setSystemTimeFromNtpPacket(const uint8_t *packet, unsigned long roun
     }
 
     directTimeSynchronized = true;
+    lastSuccessfulNtpSync = millis();
+    ntpSyncTimestampValid = true;
     return true;
 }
 
@@ -766,4 +777,61 @@ bool isWiFiConnected()
 bool isAccessPointMode()
 {
     return accessPointMode;
+}
+
+bool hasWiFiCredentials()
+{
+    String ssid;
+    String password;
+    return loadWiFiCredentials(ssid, password);
+}
+
+
+
+// ------------------------------------------------------------
+// NTP-Synchronisationsstatus für den unabhängigen Watchdog
+// ------------------------------------------------------------
+
+bool isNtpSynchronizationFresh()
+{
+    if (!directTimeSynchronized || !ntpSyncTimestampValid)
+        return false;
+
+    uint32_t elapsedSeconds =
+        (uint32_t)((millis() - lastSuccessfulNtpSync) / 1000UL);
+
+    return elapsedSeconds < NTP_SYNC_TIMEOUT_SECONDS;
+}
+
+bool refreshNtpSynchronization()
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        directTimeSynchronized = false;
+        return false;
+    }
+
+    String server1;
+    String server2;
+    String timezone;
+
+    loadTimeConfiguration(server1, server2, timezone);
+
+    server1.trim();
+    server2.trim();
+    timezone.trim();
+
+    if (timezone.length() > 0)
+    {
+        setenv("TZ", timezone.c_str(), 1);
+        tzset();
+    }
+
+    if (testNtpUdpServer(server1, true))
+        return true;
+
+    if (testNtpUdpServer(server2, true))
+        return true;
+
+    return false;
 }
