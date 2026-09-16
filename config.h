@@ -1,6 +1,12 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// ============================================================
+// Debug
+// ============================================================
+
+#define DEBUG_SERIAL 0
+
 // DCF77 Ausgang
 #define DCF_PIN 12
 
@@ -15,10 +21,15 @@ static const char* const AP_SSID = "DCM77-Setup";
 // Zeit für den WLAN-Verbindungsversuch
 static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;
 
-#endif
 
 // Maximale Zeit seit der letzten erfolgreichen NTP-Synchronisation.
 const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;
 
 // Prüfintervall des unabhängigen NTP-Watchdogs.
 static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;
+
+// ============================================================
+// Ende der Konfiguration
+// ============================================================
+
+#endif

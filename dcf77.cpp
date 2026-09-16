@@ -1,4 +1,3 @@
-#define DEBUG_SERIAL 0
 #include "dcf77.h"
 #include "timezone.h"
 #include "config.h"

@@ -1,4 +1,3 @@
-#define DEBUG_SERIAL 0
 #include "httpserver.h"
 #include "ntp.h"
 #include "config.h"

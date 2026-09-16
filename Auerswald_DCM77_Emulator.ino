@@ -1,4 +1,3 @@
-#define DEBUG_SERIAL 0
 #include "config.h"
 #include "ntp.h"
 #include "dcf77.h"

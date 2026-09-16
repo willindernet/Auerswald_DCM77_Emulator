@@ -332,3 +332,11 @@ Nach einem Watchdog-Abbruch wird der aktuelle DCF77-Zyklus sofort beendet.
 Der nächste `loop()`-Durchlauf beginnt einen neuen Zyklus. Dadurch kann ein
 abgebrochenes Telegramm nicht in einen falschen Minutenzyklus hineinwirken.
 Die bestehende DCF77-Telegrammlogik bleibt unverändert.
+
+
+## v15
+
+- `DEBUG_SERIAL` zentral in `config.h`.
+- NTP-Timeout: 6 Stunden.
+- NTP-Watchdog-Intervall: 60000 ms.
+- DCF77-Bits 26/27 in der gewünschten Reihenfolge.
