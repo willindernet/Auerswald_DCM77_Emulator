@@ -10,18 +10,18 @@
 
 void setup()
 {
-    // DCF77-Ausgang initialisieren
+    // Initialize the DCF77 output
     initDCF();
 
     if (DEBUG_SERIAL) Serial.begin(115200);
 
-    // WLAN verbinden oder Access Point starten
+    // Connect to WiFi or start access point
     bool connected = connectWiFi();
 
-    // Webserver immer starten
+    // Always start the web server
     initHttpServer();
 
-    // NTP nur bei bestehender WLAN-Verbindung
+    // NTP only when a WIFI connection is active
     if (connected)
     {
         initNTP();
@@ -36,7 +36,7 @@ void loop()
 {
     struct tm now;
 
-    // DCF77 darf ausschließlich bei gültiger NTP-Synchronisation senden.
+    // DCF77 may transmit only when NTP synchronization is active.
     if (!isDcf77TransmissionAllowed())
     {
         dcfInactive();
@@ -44,8 +44,8 @@ void loop()
         return;
     }
 
-    // Ein Abbruchereignis gehört immer zum vorherigen Telegramm.
-    // Jetzt beginnt ein neuer Telegrammzyklus.
+    // An abort event always belongs to the previous telegram.
+    // A new telegram cycle is now beginning.
     clearDcf77TransmissionAbortRequest();
 
     if (!getLocalTime(&now))
@@ -55,15 +55,15 @@ void loop()
         return;
     }
 
-    // Bestehende DCF77-Telegrammlogik unverändert.
+    // Generate a DCF77 telegram
     createDCF77Telegram(now);
 
-    // Auf den nächsten Minutenbeginn warten.
+    // Wait for the next minute to start.
     waitForNextMinute();
 
-    // Während des Wartens kann der Watchdog die NTP-Gültigkeit verlieren.
-    // In diesem Fall KEIN Telegramm beginnen, sondern sofort zum nächsten
-    // loop()-Durchlauf zurückkehren.
+    // While waiting, the watchdog may cause the NTP to become invalid.
+    // In this case, DO NOT start a telegram; instead, immediately return to the next
+    // loop() iteration.
     if (!isDcf77TransmissionAllowed() ||
         isDcf77TransmissionAbortRequested())
     {
@@ -71,7 +71,7 @@ void loop()
         return;
     }
 
-    // 59 Sekunden DCF77-Daten senden.
+    // Transmit DCF77 data for 59 seconds.
     for (int second = 0; second < 59; second++)
     {
         if (dcfBits[second])
@@ -79,8 +79,8 @@ void loop()
         else
             sendBit0();
 
-        // Der unabhängige Watchdog darf ein laufendes Telegramm jederzeit
-        // abbrechen. Nach dem return startet loop() einen neuen Zyklus.
+        // The watchdog may interrupt a telegram in progress at any time.
+        // After the return statement, loop() starts a new cycle.
         if (!isDcf77TransmissionAllowed() ||
             isDcf77TransmissionAbortRequested())
         {

@@ -13,16 +13,16 @@ static bool wifiConnected = false;
 static bool accessPointMode = false;
 static bool directTimeSynchronized = false;
 
-// Zeitpunkt der letzten erfolgreichen direkten NTP-Synchronisation.
-// millis() ist für die 6-Stunden-Überwachung ausreichend und wird über
-// unsigned-Arithmetik auch bei Überlauf korrekt verglichen.
+// Time of the last successful direct NTP synchronization.
+// millis() is sufficient for the 6-hour monitoring and is compared correctly
+// using unsigned arithmetic, even in the event of an overflow.
 static unsigned long lastSuccessfulNtpSync = 0;
 static bool ntpSyncTimestampValid = false;
 
 
 
 // ------------------------------------------------------------
-// WLAN-Zugangsdaten aus NVS laden
+// Load WIFI login credentials from NVS
 // ------------------------------------------------------------
 
 static bool loadWiFiCredentials(String &ssid, String &password)
@@ -39,7 +39,7 @@ static bool loadWiFiCredentials(String &ssid, String &password)
 
 
 // ------------------------------------------------------------
-// WLAN-Zugangsdaten speichern
+// Save WIFI login information
 // ------------------------------------------------------------
 
 void saveWiFiCredentials(const String &ssid, const String &password)
@@ -54,7 +54,7 @@ void saveWiFiCredentials(const String &ssid, const String &password)
 
 
 // ------------------------------------------------------------
-// WLAN-Konfiguration löschen
+// Delete WIFI login information
 // ------------------------------------------------------------
 
 void clearWiFiCredentials()
@@ -68,7 +68,7 @@ void clearWiFiCredentials()
 
 
 // ------------------------------------------------------------
-// Access Point starten
+// Start the access point
 // ------------------------------------------------------------
 
 static void startAccessPoint()
@@ -100,12 +100,12 @@ static void startAccessPoint()
 
 
 // ------------------------------------------------------------
-// WLAN verbinden
+// Connect to WIFI
 // ------------------------------------------------------------
 
 bool connectWiFi()
 {
-    // Bei jedem Neustart zunächst grundsätzlich keine gültige NTP-Zeit annehmen.
+    // As a general rule, do not assume a valid NTP time at the start of every reboot.
     directTimeSynchronized = false;
     ntpSyncTimestampValid = false;
     lastSuccessfulNtpSync = 0;
@@ -171,10 +171,10 @@ bool connectWiFi()
 
 
 // ------------------------------------------------------------
-// Zeitkonfiguration aus NVS laden
+// Load time configuration from NVS
 //
-// Falls noch keine eigenen Werte gespeichert wurden, werden
-// die Werkseinstellungen aus config.h zurückgegeben.
+// If no custom values have been saved yet,
+// the factory settings from config.h are returned.
 // ------------------------------------------------------------
 
 void loadTimeConfiguration(
@@ -193,7 +193,7 @@ void loadTimeConfiguration(
 
 
 // ------------------------------------------------------------
-// Zeitkonfiguration speichern
+// Save time configuration
 // ------------------------------------------------------------
 
 void saveTimeConfiguration(
@@ -212,7 +212,7 @@ void saveTimeConfiguration(
 
 
 // ------------------------------------------------------------
-// Zeitkonfiguration auf Werkseinstellungen zurücksetzen
+// Reset the time settings to factory defaults
 // ------------------------------------------------------------
 
 void resetTimeConfiguration()
@@ -226,7 +226,7 @@ void resetTimeConfiguration()
 
 
 // ------------------------------------------------------------
-// Aktuelle Zeitkonfiguration liefern
+// Provide the current time configuration
 // ------------------------------------------------------------
 
 void getTimeConfiguration(
@@ -239,7 +239,7 @@ void getTimeConfiguration(
 
 
 // ------------------------------------------------------------
-// NTP-Diagnose
+// NTP Diagnostics
 // ------------------------------------------------------------
 
 static void ntpTimeSyncCallback(struct timeval *tv)
@@ -553,7 +553,7 @@ static bool runDirectNtpUdpDiagnostics(const String &server1, const String &serv
     if (DEBUG_SERIAL) Serial.println("Die Systemzeit wird direkt aus der NTP-Antwort gesetzt.");
     if (DEBUG_SERIAL) Serial.println("Die ESP32-SNTP-Automatik wird fuer v10 nicht benoetigt.");
 
-    // Server 1 synchronisiert die Uhr. Server 2 dient als Fallback.
+    // Server 1 synchronizes the clock. Server 2 serves as a fallback.
     bool server1Ok = testNtpUdpServer(server1, true);
     bool server2Ok = false;
 
@@ -623,13 +623,14 @@ static void printNetworkDiagnostics()
 
 
 // ------------------------------------------------------------
-// Gültigkeit der Zeitquelle
+// Validity of the time source
 // ------------------------------------------------------------
 
-// Wichtig: getLocalTime() allein ist hier nicht ausreichend. Die ESP32-Systemuhr
-// kann nach einem Neustart noch eine alte/erhaltene Zeit enthalten. Für die
-// DCF77-Ausgabe zählt deshalb ausschließlich eine erfolgreiche NTP-Synchronisation
-// seit dem aktuellen Start.
+// Important: getLocalTime() alone is not sufficient here. The ESP32 system clock
+// may still contain an old or retained time after a reboot. For
+// DCF77 output, therefore, only a successful NTP synchronization
+// since the current startup counts.
+
 bool isTimeValid()
 {
     return directTimeSynchronized;
@@ -637,7 +638,7 @@ bool isTimeValid()
 
 
 // ------------------------------------------------------------
-// NTP konfigurieren
+// Configure NTP
 // ------------------------------------------------------------
 
 void initNTP()
@@ -680,9 +681,9 @@ void initNTP()
     testNtpDns(server1);
     testNtpDns(server2);
 
-    // v10: keine configTime()/SNTP-Automatik. Die Uhr wird direkt aus
-    // einer verifizierten UDP-NTP-Antwort gesetzt. Die Zeitzone wird
-    // anschließend wie bisher ueber TZ/tzset() aktiviert.
+    // v10: No configTime() or automatic SNTP synchronization. The clock is set directly from
+    // a verified UDP NTP response. The time zone is
+    // then set as before using TZ/tzset().
     bool synchronized = runDirectNtpUdpDiagnostics(server1, server2);
 
     setenv("TZ", timezone.c_str(), 1);
@@ -719,7 +720,7 @@ void initNTP()
 
 
 // ------------------------------------------------------------
-// Auf gültige Zeit warten
+// Wait for the valid time
 // ------------------------------------------------------------
 
 void waitForTime()
@@ -788,7 +789,7 @@ bool hasWiFiCredentials()
 
 
 // ------------------------------------------------------------
-// NTP-Synchronisationsstatus für den unabhängigen Watchdog
+// NTP synchronization status for the watchdog
 // ------------------------------------------------------------
 
 bool isNtpSynchronizationFresh()

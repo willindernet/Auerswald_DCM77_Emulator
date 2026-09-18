@@ -2,34 +2,35 @@
 #define CONFIG_H
 
 // ============================================================
-// Debug
+// Start of configuration
 // ============================================================
 
+// seriell debuging
 #define DEBUG_SERIAL 0
 
-// DCF77 Ausgang
+// DCF77 output
 #define DCF_PIN 12
 
-// NTP / Zeitzone - Werkseinstellungen
+// NTP / Time Zone - Factory Settings
 static const char* const NTP_SERVER_1 = "pool.ntp.org";
 static const char* const NTP_SERVER_2 = "time.nist.gov";
 static const char* const TIMEZONE_INFO = "CET-1CEST,M3.5.0,M10.5.0/3";
 
-// Access Point für die WLAN-Konfiguration
+// Access Point for WIFI-Configuration
 static const char* const AP_SSID = "DCM77-Setup";
 
-// Zeit für den WLAN-Verbindungsversuch
-static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;
+// Time to try connecting to WIFI
+static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;        // 15s
 
 
-// Maximale Zeit seit der letzten erfolgreichen NTP-Synchronisation.
-const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;
+// Maximum time since the last successful NTP synchronization
+const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;  // 6h
 
-// Prüfintervall des unabhängigen NTP-Watchdogs.
-static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;
+// Check Interval of the NTP Watchdog
+static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;     // 1h
 
 // ============================================================
-// Ende der Konfiguration
+// End of configuration
 // ============================================================
 
 #endif

@@ -1,21 +1,21 @@
 #include "dcf77.h"
-#include "timezone.h"
 #include "config.h"
 
 #include <Arduino.h>
 #include <esp_timer.h>
 #include <string.h>
+#include <time.h>
 
 
 // --------------------------------------------------
-// Array für Zeitinformation
+// Array for time information
 // --------------------------------------------------
 
 bool dcfBits[59];
 
 
 // --------------------------------------------------
-// DCF Initialisierung
+// DCF Initialization
 // --------------------------------------------------
 
 void initDCF()
@@ -28,54 +28,53 @@ void initDCF()
 
 
 // --------------------------------------------------
-// Auf nächsten Minutenwechsel warten
+// Wait for the next minute to start
 // --------------------------------------------------
 
 void waitForNextMinute()
 {
-    // Warten, bis die Sekunde "00" erreicht wird
+    // Wait until the seconds reach “00”
     struct tm now;
 
     if (!getLocalTime(&now))
         return;
 
-    // Aktuelle Zeit als Unix-Zeit
+    // Current time as Unix time
     time_t t = mktime(&now);
 
-    // Zeitpunkt des nächsten Minutenwechsels
+    // Time of the next minute change
     t += 60 - now.tm_sec;
 
-    // Aktuelle ESP32-Zeit in Mikrosekunden
+    // Current ESP32 time in microseconds
     int64_t startUs = esp_timer_get_time();
 
-    // Dauer bis zum nächsten Minutenwechsel
-    // in Mikrosekunden
+    // Time remaining until the next minute changes
+    // in microseconds
     int64_t waitUs =
         (t - time(nullptr)) * 1000000LL;
 
-    // Zunächst grob warten, damit die CPU
-    // nicht unnötig beschäftigt wird
+    // First, wait for a short while so that the CPU
+    // isn't unnecessarily occupied
     if (waitUs > 20000)
     {
         delay((waitUs - 10000) / 1000);
     }
 
-    // Jetzt mit hoher Auflösung auf den
-    // Minutenwechsel warten
+    // Wait for the minute to change in high resolution
     while (esp_timer_get_time() - startUs < waitUs)
     {
-        // bewusst leer
+        // intentionally left blank
     }
 }
 
 
 // --------------------------------------------------
-// DCF77 Bit 1 senden
+// Transmit DCF77 Bit 1
 // --------------------------------------------------
 
 void sendBit1()
 {
-    // Sende eine "1"
+    // Send a "1"
     // 200 ms high, 800 ms low
 
     dcfActive();
@@ -91,12 +90,12 @@ void sendBit1()
 
 
 // --------------------------------------------------
-// DCF77 Bit 0 senden
+// Transmit DCF77 Bit 0
 // --------------------------------------------------
 
 void sendBit0()
 {
-    // Sende eine "0"
+    // Send a "0"
     // 100 ms high, 900 ms low
 
     dcfActive();
@@ -112,36 +111,35 @@ void sendBit0()
 
 
 // --------------------------------------------------
-// DCF Ausgang aktiv
+// DCF output active
 // --------------------------------------------------
 
 void dcfActive()
 {
-    // Setze GPIO Pin auf 1
+    // Set the GPIO pin to 1
     digitalWrite(DCF_PIN, HIGH);
 }
 
 
 // --------------------------------------------------
-// DCF Ausgang inaktiv
+// DCF output inactive
 // --------------------------------------------------
 
 void dcfInactive()
 {
-    // Setze GPIO Pin auf 0
+    // Set the GPIO pin to 0
     digitalWrite(DCF_PIN, LOW);
 }
 
 
 // --------------------------------------------------
-// Paritätsberechnung
+// Parity calculation
 // --------------------------------------------------
 
 int parity(int start, int end)
 {
-    // Berechnen der Parity
-    // Es wird immer eine gerade Anzahl von "1"
-    // gesendet
+    // Calculating Parity
+    // An even number of "1"s is always transmitted
 
     int count = 0;
 
@@ -155,27 +153,101 @@ int parity(int start, int end)
 
 
 // --------------------------------------------------
-// DCF77 Telegramm erzeugen
+// Calculation of the summer time announcement
+// --------------------------------------------------
+
+bool getDCF77A1(const struct tm &t)
+{
+    // ----------------------------------------
+    // The last sunday in march
+    // ----------------------------------------
+
+    int marchLastDay = 31;
+
+    struct tm marchLast = {};
+
+    marchLast.tm_year = t.tm_year;
+    marchLast.tm_mon  = 2;           // March
+    marchLast.tm_mday = marchLastDay;
+    marchLast.tm_hour = 12;
+
+    mktime(&marchLast);
+
+    int marchLastSunday =
+        marchLastDay - marchLast.tm_wday;
+
+
+    // ----------------------------------------
+    // The last sunday in october
+    // ----------------------------------------
+
+    int octoberLastDay = 31;
+
+    struct tm octoberLast = {};
+
+    octoberLast.tm_year = t.tm_year;
+    octoberLast.tm_mon  = 9;         // October
+    octoberLast.tm_mday = octoberLastDay;
+    octoberLast.tm_hour = 12;
+
+    mktime(&octoberLast);
+
+    int octoberLastSunday =
+        octoberLastDay - octoberLast.tm_wday;
+
+
+    // ----------------------------------------
+    // Change from CET to CEST
+    // Announcement Time: 1:00 – 1:59 CET
+    // ----------------------------------------
+
+    if (t.tm_mon == 2 &&
+        t.tm_mday == marchLastSunday &&
+        t.tm_hour == 1 &&
+        t.tm_isdst == 0)
+    {
+        return true;
+    }
+
+
+    // ----------------------------------------
+    // Change from CEST to CET
+    // Announcement Time: 2:00 – 2:59 CEST
+    // ----------------------------------------
+
+    if (t.tm_mon == 9 &&
+        t.tm_mday == octoberLastSunday &&
+        t.tm_hour == 2 &&
+        t.tm_isdst > 0)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+// --------------------------------------------------
+// Generate DCF77 telegram
 // --------------------------------------------------
 
 void createDCF77Telegram(struct tm now)
 {
-    // Setzen der einzelnen Bits der Zeitnachricht
-    // Kommentare für detailliertes Tracing
+    // Setting the individual bits of the time message
 
-    // Bit für Schaltsekunde wird nicht geschickt
+    // The bit for the leap second is not sent
     memset(dcfBits, 0, sizeof(dcfBits));
 
 
     // ------------------------------------------------
-    // Zeit der folgenden Minute
+    // Time of the next minute
     // ------------------------------------------------
 
-    // Es wird immer die Zeit der folgenden Minute
-    // geschickt: +60
+    // The time for the next minute is always 
+    // transmitted: +60
     //
-    // Durch waitForNextMinute() wird ein
-    // Minutenwechsel herbeigeführt: +60
+    // waitForNextMinute( ) triggers the
+    // start of a new minute: +60
 
     time_t t = mktime(&now);
 
@@ -185,7 +257,7 @@ void createDCF77Telegram(struct tm now)
 
 
     // ------------------------------------------------
-    // Zeitvariablen
+    // Time variables
     // ------------------------------------------------
 
     int minute = now.tm_min;
@@ -203,7 +275,7 @@ void createDCF77Telegram(struct tm now)
     // Bit 0
     // ------------------------------------------------
 
-    // Minutenmarke, immer 0-Bit
+    // Minute mark, always 0 bit
 
     dcfBits[0] = 0;
 
@@ -212,7 +284,7 @@ void createDCF77Telegram(struct tm now)
     // Bit 1-14
     // ------------------------------------------------
 
-    // Wetterdaten
+    // Weather data
 
     dcfBits[1]  = 0;
     dcfBits[2]  = 0;
@@ -235,7 +307,7 @@ void createDCF77Telegram(struct tm now)
     // ------------------------------------------------
 
     // Rufbit
-    // Ist es 1, liegt ggf. eine Störung vor
+    // If it is 1, there may be a malfunction
 
     dcfBits[15] = 0;
 
@@ -244,7 +316,7 @@ void createDCF77Telegram(struct tm now)
     // Bit 16
     // ------------------------------------------------
 
-    // Ankündigung Zeitumstellung
+    // Announcement of the time change
 
     dcfBits[16] = summerwinterchange;
 
@@ -253,8 +325,8 @@ void createDCF77Telegram(struct tm now)
     // Bit 17 / 18
     // ------------------------------------------------
 
-    // Sommerzeit: 10
-    // Winterzeit: 01
+    // Summer time: 10
+    // Winter time: 01
 
     dcfBits[17] = summertime;
     dcfBits[18] = !summertime;
@@ -264,7 +336,7 @@ void createDCF77Telegram(struct tm now)
     // Bit 19
     // ------------------------------------------------
 
-    // Ankündigung einer Schaltsekunde
+    // Announcement of a leap second
 
     dcfBits[19] = 0;
 
@@ -273,13 +345,13 @@ void createDCF77Telegram(struct tm now)
     // Bit 20
     // ------------------------------------------------
 
-    // Start Zeitinformation
+    // Start time information
 
     dcfBits[20] = 1;
 
 
     // =================================================
-    // MINUTE
+    // Minute
     // =================================================
 
     dcfBits[21] = ((minute % 10) & 1) ? 1 : 0;
@@ -291,13 +363,13 @@ void createDCF77Telegram(struct tm now)
     dcfBits[27] = ((minute / 10) & 4) ? 1 : 0;
 
 
-    // Parity für Minute
+    // Parity for Minute
 
     dcfBits[28] = parity(21, 27);
 
 
     // =================================================
-    // STUNDE
+    // Hour
     // =================================================
 
     dcfBits[29] = ((hour % 10) & 1) ? 1 : 0;
@@ -308,13 +380,13 @@ void createDCF77Telegram(struct tm now)
     dcfBits[34] = ((hour / 10) & 2) ? 1 : 0;
 
 
-    // Parity für Stunde
+    // Parity for hour
 
     dcfBits[35] = parity(29, 34);
 
 
     // =================================================
-    // TAG
+    // Day
     // =================================================
 
     dcfBits[36] = ((day % 10) & 1) ? 1 : 0;
@@ -326,7 +398,7 @@ void createDCF77Telegram(struct tm now)
 
 
     // =================================================
-    // WOCHENTAG
+    // Weekday
     // =================================================
 
     dcfBits[42] = (weekday & 1) ? 1 : 0;
@@ -335,7 +407,7 @@ void createDCF77Telegram(struct tm now)
 
 
     // =================================================
-    // MONAT
+    // Month
     // =================================================
 
     dcfBits[45] = ((month % 10) & 1) ? 1 : 0;
@@ -346,7 +418,7 @@ void createDCF77Telegram(struct tm now)
 
 
     // =================================================
-    // JAHR
+    // Year
     // =================================================
 
     dcfBits[50] = ((year % 10) & 1) ? 1 : 0;
@@ -360,10 +432,10 @@ void createDCF77Telegram(struct tm now)
 
 
     // =================================================
-    // PARITY
+    // Parity
     // =================================================
 
-    // Parity für Tag, Wochentag, Monat, Jahr
+    // Parity for day, weekday, month, year
 
     dcfBits[58] = parity(36, 57);
 }

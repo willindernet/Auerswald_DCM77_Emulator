@@ -11,7 +11,7 @@ static TaskHandle_t httpServerTaskHandle = nullptr;
 
 
 // ------------------------------------------------------------
-// HTML-Hilfsfunktion: HTML-Zeichen escapen
+// HTML Utility: escaping HTML characters
 // ------------------------------------------------------------
 
 static String htmlEscape(const String &value)
@@ -28,11 +28,10 @@ static String htmlEscape(const String &value)
 
 
 // ------------------------------------------------------------
-// Zeitkonfiguration: bekannte Zeitzonen
+// Time configuration: known time zones
 //
-// Die Auswahl speichert die jeweilige POSIX-TZ-Zeichenkette.
-// "Benutzerdefiniert" erlaubt die direkte Eingabe einer
-// beliebigen POSIX-TZ-Zeichenkette.
+// The selection saves the corresponding POSIX-TZ string.
+// "Benutzerdefiniert" allows you to enter any POSIX-TZ string directly.
 // ------------------------------------------------------------
 
 struct TimezoneOption
@@ -101,7 +100,7 @@ static const size_t timezoneOptionCount =
 
 
 // ------------------------------------------------------------
-// Zeitzonen-Auswahl erzeugen
+// Generate a time zone selection
 // ------------------------------------------------------------
 
 static String makeTimezoneOptions(const String &currentTimezone)
@@ -141,7 +140,7 @@ static String makeTimezoneOptions(const String &currentTimezone)
 
 
 // ------------------------------------------------------------
-// HTML-Seite
+// HTML-Page
 // ------------------------------------------------------------
 
 static String makePage()
@@ -300,7 +299,7 @@ static String makePage()
 
 
 // ------------------------------------------------------------
-// Startseite
+// Homepage
 // ------------------------------------------------------------
 
 static void handleRoot()
@@ -314,7 +313,7 @@ static void handleRoot()
 
 
 // ------------------------------------------------------------
-// WLAN speichern
+// Save WIFI
 // ------------------------------------------------------------
 
 static void handleSave()
@@ -386,7 +385,7 @@ static void handleSave()
 
 
 // ------------------------------------------------------------
-// WLAN-Konfiguration löschen
+// Delete WiFi configuration
 // ------------------------------------------------------------
 
 static void handleClear()
@@ -414,7 +413,7 @@ static void handleClear()
 
 
 // ------------------------------------------------------------
-// NTP / Zeitzone speichern
+// Save NTP / time zone
 // ------------------------------------------------------------
 
 static void handleTimeSave()
@@ -502,7 +501,7 @@ static void handleTimeSave()
 
 
 // ------------------------------------------------------------
-// NTP / Zeitzone auf Werkseinstellungen zurücksetzen
+// Reset NTP / time zone to factory settings
 // ------------------------------------------------------------
 
 static void handleTimeReset()
@@ -533,7 +532,7 @@ static void handleTimeReset()
 
 
 // ------------------------------------------------------------
-// HTTP-Server Task
+// HTTP server task
 // ------------------------------------------------------------
 
 static void httpServerTask(void *parameter)
@@ -548,7 +547,7 @@ static void httpServerTask(void *parameter)
 
 
 // ------------------------------------------------------------
-// HTTP-Server initialisieren
+// Initialize the HTTP server
 // ------------------------------------------------------------
 
 void initHttpServer()

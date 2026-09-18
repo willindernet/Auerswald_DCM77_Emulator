@@ -12,14 +12,14 @@ bool isAccessPointMode();
 bool hasWiFiCredentials();
 bool isTimeValid();
 
-// Zyklische NTP-Sicherheitsüberwachung
+// Cyclic NTP security monitoring
 bool isNtpSynchronizationFresh();
 bool refreshNtpSynchronization();
 
 void saveWiFiCredentials(const String &ssid, const String &password);
 void clearWiFiCredentials();
 
-// NTP / Zeitzone
+// NTP / time zone
 void loadTimeConfiguration(String &server1, String &server2, String &timezone);
 void saveTimeConfiguration(const String &server1, const String &server2, const String &timezone);
 void resetTimeConfiguration();

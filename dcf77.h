@@ -6,28 +6,28 @@
 
 
 // --------------------------------------------------
-// DCF77 Telegramm
+// Array for time information
 // --------------------------------------------------
 
 extern bool dcfBits[59];
 
 
 // --------------------------------------------------
-// Initialisierung
+// DCF Initialization
 // --------------------------------------------------
 
 void initDCF();
 
 
 // --------------------------------------------------
-// Synchronisation
+// Wait for the next minute to start
 // --------------------------------------------------
 
 void waitForNextMinute();
 
 
 // --------------------------------------------------
-// Bitübertragung
+// Transmit DCF77 Bit
 // --------------------------------------------------
 
 void sendBit1();
@@ -35,7 +35,7 @@ void sendBit0();
 
 
 // --------------------------------------------------
-// Ausgang
+// DCF output
 // --------------------------------------------------
 
 void dcfActive();
@@ -43,16 +43,24 @@ void dcfInactive();
 
 
 // --------------------------------------------------
-// DCF77 Telegramm erzeugen
+// Generate DCF77 telegram
 // --------------------------------------------------
 
 void createDCF77Telegram(struct tm now);
 
 
 // --------------------------------------------------
-// Parität
+// Parity calculation
 // --------------------------------------------------
 
 int parity(int start, int end);
+
+
+// --------------------------------------------------
+// Calculation of the summer time announcement
+// --------------------------------------------------
+
+bool getDCF77A1(const struct tm &t);
+
 
 #endif

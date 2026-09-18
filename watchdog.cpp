@@ -11,7 +11,7 @@ static volatile bool dcf77TransmissionAbortRequested = false;
 
 static void tryNtpRecovery()
 {
-    // NTP ist nicht mehr frisch: DCF77 sofort sperren.
+    // NTP is no longer up to date: Disable DCF77 immediately.
     dcf77TransmissionAllowed = false;
     dcf77TransmissionAbortRequested = true;
     dcfInactive();
@@ -27,9 +27,9 @@ static void tryNtpRecovery()
 
     if (isWiFiConnected() && refreshNtpSynchronization())
     {
-        // Das Abbruchflag bleibt absichtlich gesetzt. Damit kann ein
-        // laufendes Telegramm nach einem Timeout niemals fortgesetzt werden.
-        // Erst der nächste loop()-Zyklus löscht es vor einem neuen Telegramm.
+        // The abort flag is intentionally left set. This ensures that a
+        // telegram currently in progress can never be resumed after a timeout.
+        // Only the next loop() cycle clears it before a new telegram.
         dcf77TransmissionAllowed = true;
 
 #if DEBUG_SERIAL
