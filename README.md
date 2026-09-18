@@ -50,10 +50,16 @@ Für Deutschland wird folgende POSIX-Zeitzonendefinition verwendet:
 
 ## Watchdog
 
-Es wird jede Stunde (Default, konfigurierbar) geprüft, wann die letzte NTP Synchronisation erfolgt ist.
-Wenn die Synchronisation seit 6 Stunden (Default, konfigurierbar) nicht erfolgt ist, wird die Ausgabe des DCF77 Signals deaktiviert.
-In diesem Fall wird versucht WLAN neu zu verbinden und NTP neu zu synchronisieren.
+Der NTP-Watchdog überprüft unabhängig die Aktualität der letzten erfolgreichen NTP-Synchronisation.
+- Der Watchdog überprüft den Synchronisationsstatus alle **1 Minuten**.
+- Eine erfolgreiche NTP-Synchronisation bleibt **6 Stunden** lang gültig.
+- Wenn innerhalb dieses Zeitraums keine erfolgreiche Synchronisation stattgefunden hat, wird die DCF77-Übertragung sofort deaktiviert.
+- Wird gerade ein DCF77-Telegramm übertragen, wird die Übertragung abgebrochen.
+- Der Watchdog versucht anschließend, die Zeitsynchronisation wiederherzustellen. Ist die WLAN-Verbindung unterbrochen, wird die gespeicherte WLAN-Konfiguration verwendet, um die Verbindung wiederherzustellen.
+- Die DCF77-Übertragung wird erst nach einer erfolgreichen NTP-Synchronisation wieder aktiviert.
+- Ein unterbrochenes Telegramm wird nicht fortgesetzt. Die Übertragung beginnt in einem neuen Minutenzyklus erneut.
 
+Der Watchdog arbeitet somit unabhängig von der normalen DCF77-Übertragungsschleife.
 ## DCF77-Ausgabe
 
 Das Telegramm wird über GPIO12 ausgegeben.
@@ -84,6 +90,7 @@ Das Telegramm wird über GPIO12 ausgegeben.
 - Paritätsbits
 
 Nicht verwendete Bits werden auf 0 gesetzt.
+Die 59 Datenbits werden in den Sekunden **0 bis 58** übertragen. Die Sekunde 59 enthält keinen Impuls und dient als Minutenmarkierung.
 
 ## Projektstruktur
 
@@ -121,7 +128,7 @@ Enthält:
 - NTP-Server
 - Zeitzoneninformation
 - Access Point Mode
-- Timeout fur WLAN Verbindung
+- Timeout für WLAN-Verbindung
 - Watchdog
 
 ### dcf77.cpp / dcf77.h
@@ -234,3 +241,23 @@ Die Webseite bietet:
 - Eingabe der NTP-Server
 - Eingabe der Zeitzone
 - automatischen Neustart nach Änderung der Konfiguration
+
+## NTP
+
+Die Zeit wird direkt über das NTP-Protokoll unter Verwendung des UDP-Ports 123 abgerufen.
+
+Die aktuelle Implementierung nutzt **nicht** die automatische SNTP-Synchronisation des ESP32. Stattdessen wird die NTP-Anfrage direkt durchgeführt und die Systemzeit des ESP32 anhand des empfangenen NTP-Zeitstempels eingestellt.
+
+## Installation / Erster Start
+
+1. Installieren Sie den ESP32-Board-Support in der Arduino-IDE.
+2. Öffnen Sie das Projekt und wählen Sie das entsprechende ESP32-Board aus, z. B. `ESP32 Dev Module`.
+3. Laden Sie die Firmware auf den ESP32 hoch.
+4. Beim ersten Start oder wenn keine gültige WLAN-Konfiguration gespeichert ist, startet das ESP32 den offenen Zugangspunkt `DCM77-Setup`.
+5. Stellen Sie eine Verbindung zu diesem Zugangspunkt her und öffnen Sie `192.168.4.1` in einem Webbrowser.
+6. Geben Sie die WLAN-Zugangsdaten ein und speichern Sie die Konfiguration.
+7. Das ESP32 startet neu und verbindet sich mit dem konfigurierten WLAN-Netzwerk.
+8. Nach einer erfolgreichen NTP-Synchronisation wird die DCF77-Übertragung aktiviert.
+9. Verbinden Sie GPIO12 über die vorgesehene Transistor-/Pegelumsetzerschaltung mit dem Takteingang. Der ESP32-GPIO ist nicht dafür vorgesehen, den Takteingang direkt anzusteuern.
+
+Der von diesem Projekt erzeugte DCF77-Ausgang ist das demodulierte Impulssignal. Der ESP32 erzeugt keinen 77,5-kHz-Träger.

@@ -27,7 +27,7 @@ static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;        // 15s
 const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;  // 6h
 
 // Check Interval of the NTP Watchdog
-static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;     // 1h
+static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;     // 1min
 
 // ============================================================
 // End of configuration
