@@ -9,6 +9,13 @@ static TaskHandle_t ntpWatchdogTaskHandle = nullptr;
 static volatile bool dcf77TransmissionAllowed = false;
 static volatile bool dcf77TransmissionAbortRequested = false;
 
+//---------------------------------------------------------------------------
+// void tryNtpRecovery()
+//---------------------------------------------------------------------------
+// Description     | try to reconnect NTP
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void tryNtpRecovery()
 {
     // NTP is no longer up to date: Disable DCF77 immediately.
@@ -48,6 +55,14 @@ static void tryNtpRecovery()
     }
 }
 
+
+//---------------------------------------------------------------------------
+// void ntpWatchdogTask(void *parameter)
+//---------------------------------------------------------------------------
+// Description     | create watchdog task
+// Parameter       | parameter: void *
+// Return value    | void
+//---------------------------------------------------------------------------
 static void ntpWatchdogTask(void *parameter)
 {
     (void)parameter;
@@ -75,6 +90,14 @@ static void ntpWatchdogTask(void *parameter)
     }
 }
 
+
+//---------------------------------------------------------------------------
+// void initNtpWatchdog()
+//---------------------------------------------------------------------------
+// Description     | init watchdog task
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void initNtpWatchdog()
 {
     if (ntpWatchdogTaskHandle != nullptr)
@@ -86,16 +109,42 @@ void initNtpWatchdog()
     );
 }
 
+
+//---------------------------------------------------------------------------
+// bool isDcf77TransmissionAllowed()
+//---------------------------------------------------------------------------
+// Description     | Check whether DCF77 transmission is possible
+// Parameter       | None
+// Return value    | bool: 1 -> DCF77 transmission is possible
+//                 | bool: 0 -> DCF77 transmission is not possible
+//---------------------------------------------------------------------------
 bool isDcf77TransmissionAllowed()
 {
     return dcf77TransmissionAllowed;
 }
 
+
+//---------------------------------------------------------------------------
+// bool isDcf77TransmissionAbortRequested()
+//---------------------------------------------------------------------------
+// Description     | Check whether DCF77 transmission is requested
+// Parameter       | None
+// Return value    | bool: 1 -> DCF77 transmission is requested
+//                 | bool: 0 -> DCF77 transmission is not requested
+//---------------------------------------------------------------------------
 bool isDcf77TransmissionAbortRequested()
 {
     return dcf77TransmissionAbortRequested;
 }
 
+
+//---------------------------------------------------------------------------
+// void clearDcf77TransmissionAbortRequest()
+//---------------------------------------------------------------------------
+// Description     | clear DCF77 transmission abort request
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void clearDcf77TransmissionAbortRequest()
 {
     dcf77TransmissionAbortRequested = false;

@@ -10,10 +10,13 @@ static WebServer httpServer(80);
 static TaskHandle_t httpServerTaskHandle = nullptr;
 
 
-// ------------------------------------------------------------
-// HTML Utility: escaping HTML characters
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// String htmlEscape(const String &value)
+//---------------------------------------------------------------------------
+// Description     | HTML Utility: escaping HTML characters
+// Parameter       | String value: character to escape
+// Return value    | String: escaped character
+//---------------------------------------------------------------------------
 static String htmlEscape(const String &value)
 {
     String result = value;
@@ -99,10 +102,13 @@ static const size_t timezoneOptionCount =
     sizeof(timezoneOptions) / sizeof(timezoneOptions[0]);
 
 
-// ------------------------------------------------------------
-// Generate a time zone selection
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// String makeTimezoneOptions(const String &currentTimezone)
+//---------------------------------------------------------------------------
+// Description     | Generate a time zone selection
+// Parameter       | string currentTimezone: time zone
+// Return value    | String: Time zone in HTML format
+//---------------------------------------------------------------------------
 static String makeTimezoneOptions(const String &currentTimezone)
 {
     String html;
@@ -139,10 +145,13 @@ static String makeTimezoneOptions(const String &currentTimezone)
 }
 
 
-// ------------------------------------------------------------
-// HTML-Page
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// String makePage()
+//---------------------------------------------------------------------------
+// Description     | generate HTML-Page
+// Parameter       | None
+// Return value    | String: generated HTML-Page
+//---------------------------------------------------------------------------
 static String makePage()
 {
     String server1;
@@ -298,10 +307,13 @@ static String makePage()
 }
 
 
-// ------------------------------------------------------------
-// Homepage
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void handleRoot()
+//---------------------------------------------------------------------------
+// Description     | generate Homepage
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void handleRoot()
 {
     httpServer.send(
@@ -312,10 +324,13 @@ static void handleRoot()
 }
 
 
-// ------------------------------------------------------------
-// Save WIFI
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void handleSave()
+//---------------------------------------------------------------------------
+// Description     | Save WIFI
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void handleSave()
 {
     if (!httpServer.hasArg("ssid") || !httpServer.hasArg("password"))
@@ -384,10 +399,13 @@ static void handleSave()
 }
 
 
-// ------------------------------------------------------------
-// Delete WiFi configuration
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void handleClear()
+//---------------------------------------------------------------------------
+// Description     | Delete WiFi configuration
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void handleClear()
 {
     clearWiFiCredentials();
@@ -412,10 +430,13 @@ static void handleClear()
 }
 
 
-// ------------------------------------------------------------
-// Save NTP / time zone
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void handleTimeSave()
+//---------------------------------------------------------------------------
+// Description     | Save NTP / time zone
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void handleTimeSave()
 {
     if (!httpServer.hasArg("ntp1") ||
@@ -500,10 +521,13 @@ static void handleTimeSave()
 }
 
 
-// ------------------------------------------------------------
-// Reset NTP / time zone to factory settings
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void handleTimeReset()
+//---------------------------------------------------------------------------
+// Description     | Reset NTP / time zone to factory settings
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void handleTimeReset()
 {
     resetTimeConfiguration();
@@ -531,10 +555,13 @@ static void handleTimeReset()
 }
 
 
-// ------------------------------------------------------------
-// HTTP server task
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void httpServerTask(void *parameter)
+//---------------------------------------------------------------------------
+// Description     | HTTP server task
+// Parameter       | parameter: void *
+// Return value    | void
+//---------------------------------------------------------------------------
 static void httpServerTask(void *parameter)
 {
     for (;;)
@@ -546,10 +573,13 @@ static void httpServerTask(void *parameter)
 }
 
 
-// ------------------------------------------------------------
-// Initialize the HTTP server
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void initHttpServer()
+//---------------------------------------------------------------------------
+// Description     | Initialize the HTTP server
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void initHttpServer()
 {
     httpServer.on("/", HTTP_GET, handleRoot);

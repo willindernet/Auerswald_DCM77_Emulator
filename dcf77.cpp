@@ -14,10 +14,13 @@
 bool dcfBits[59];
 
 
-// --------------------------------------------------
-// DCF Initialization
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void initDCF()
+//---------------------------------------------------------------------------
+// Description     | DCF Initialization
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void initDCF()
 {
     pinMode(DCF_PIN, OUTPUT);
@@ -27,10 +30,13 @@ void initDCF()
 }
 
 
-// --------------------------------------------------
-// Wait for the next minute to start
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void waitForNextMinute()
+//---------------------------------------------------------------------------
+// Description     | Wait for the next minute to start
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void waitForNextMinute()
 {
     // Wait until the seconds reach “00”
@@ -68,10 +74,13 @@ void waitForNextMinute()
 }
 
 
-// --------------------------------------------------
-// Transmit DCF77 Bit 1
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void sendBit1()
+//---------------------------------------------------------------------------
+// Description     | Transmit DCF77 Bit 1
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void sendBit1()
 {
     // Send a "1"
@@ -89,10 +98,13 @@ void sendBit1()
 }
 
 
-// --------------------------------------------------
-// Transmit DCF77 Bit 0
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void sendBit0()
+//---------------------------------------------------------------------------
+// Description     | Transmit DCF77 Bit 0
+// Parameter       | None
+// Return value    | The void sendBi result of the operation.
+//---------------------------------------------------------------------------
 void sendBit0()
 {
     // Send a "0"
@@ -110,10 +122,13 @@ void sendBit0()
 }
 
 
-// --------------------------------------------------
-// DCF output active
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void dcfActive()
+//---------------------------------------------------------------------------
+// Description     | DCF output active
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void dcfActive()
 {
     // Set the GPIO pin to 1
@@ -121,10 +136,13 @@ void dcfActive()
 }
 
 
-// --------------------------------------------------
-// DCF output inactive
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void dcfInactive()
+//---------------------------------------------------------------------------
+// Description     | DCF output inactive
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void dcfInactive()
 {
     // Set the GPIO pin to 0
@@ -132,10 +150,14 @@ void dcfInactive()
 }
 
 
-// --------------------------------------------------
-// Parity calculation
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// int parity(int start, int end)
+//---------------------------------------------------------------------------
+// Description     | Parity calculation
+// Parameter       | int start: start bit of the operation
+// Parameter       | int end: end bit of the operation
+// Return value    | int parity result of the operation.
+//---------------------------------------------------------------------------
 int parity(int start, int end)
 {
     // Calculating Parity
@@ -152,10 +174,14 @@ int parity(int start, int end)
 }
 
 
-// --------------------------------------------------
-// Calculation of the summer time announcement
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// bool getDCF77A1(const struct tm &t)
+//---------------------------------------------------------------------------
+// Description     | Calculation of the summer time announcement
+// Parameter       | struct tm t: struct of actual time
+// Return value    | bool: true  -> summer time announcement
+//                 |       false -> no summer time announcement
+//---------------------------------------------------------------------------
 bool getDCF77A1(const struct tm &t)
 {
     // ----------------------------------------
@@ -227,10 +253,13 @@ bool getDCF77A1(const struct tm &t)
 }
 
 
-// --------------------------------------------------
-// Generate DCF77 telegram
-// --------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void createDCF77Telegram(struct tm now)
+//---------------------------------------------------------------------------
+// Description     | Generate DCF77 telegram
+// Parameter       | struct tm now: actual time
+// Return value    | void
+//---------------------------------------------------------------------------
 void createDCF77Telegram(struct tm now)
 {
     // Setting the individual bits of the time message
@@ -243,10 +272,8 @@ void createDCF77Telegram(struct tm now)
     // Time of the next minute
     // ------------------------------------------------
 
-    // The time for the next minute is always 
-    // transmitted: +60
-    //
-    // waitForNextMinute( ) triggers the
+    // The time for the next minute: +60
+    // waitForNextMinute() triggers the
     // start of a new minute: +60
 
     time_t t = mktime(&now);

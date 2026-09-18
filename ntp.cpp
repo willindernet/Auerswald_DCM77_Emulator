@@ -21,10 +21,15 @@ static bool ntpSyncTimestampValid = false;
 
 
 
-// ------------------------------------------------------------
-// Load WIFI login credentials from NVS
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// bool loadWiFiCredentials(String &ssid, String &password)
+//---------------------------------------------------------------------------
+// Description     | Load WIFI login credentials from NVS
+// Parameter       | String ssid: WIFI ssid
+// Parameter       | String password: WIFI password
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 static bool loadWiFiCredentials(String &ssid, String &password)
 {
     preferences.begin("wifi", true);
@@ -38,10 +43,14 @@ static bool loadWiFiCredentials(String &ssid, String &password)
 }
 
 
-// ------------------------------------------------------------
-// Save WIFI login information
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void saveWiFiCredentials(const String &ssid, const String &password)
+//---------------------------------------------------------------------------
+// Description     | Save WIFI login information
+// Parameter       | String ssid: WIFI ssid
+// Parameter       | String password: WIFI password
+// Return value    | void
+//---------------------------------------------------------------------------
 void saveWiFiCredentials(const String &ssid, const String &password)
 {
     preferences.begin("wifi", false);
@@ -53,10 +62,13 @@ void saveWiFiCredentials(const String &ssid, const String &password)
 }
 
 
-// ------------------------------------------------------------
-// Delete WIFI login information
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void clearWiFiCredentials()
+//---------------------------------------------------------------------------
+// Description     | Delete WIFI login information
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void clearWiFiCredentials()
 {
     preferences.begin("wifi", false);
@@ -67,10 +79,13 @@ void clearWiFiCredentials()
 }
 
 
-// ------------------------------------------------------------
-// Start the access point
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void startAccessPoint()
+//---------------------------------------------------------------------------
+// Description     | Start the access point
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void startAccessPoint()
 {
     if (DEBUG_SERIAL) Serial.println();
@@ -99,10 +114,14 @@ static void startAccessPoint()
 }
 
 
-// ------------------------------------------------------------
-// Connect to WIFI
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// bool connectWiFi()
+//---------------------------------------------------------------------------
+// Description     | Connect to WIFI
+// Parameter       | None
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 bool connectWiFi()
 {
     // As a general rule, do not assume a valid NTP time at the start of every reboot.
@@ -170,13 +189,17 @@ bool connectWiFi()
 }
 
 
-// ------------------------------------------------------------
-// Load time configuration from NVS
-//
-// If no custom values have been saved yet,
-// the factory settings from config.h are returned.
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void loadTimeConfiguration()
+//---------------------------------------------------------------------------
+// Description     | Load time configuration from NVS
+//                 | If no custom values have been saved yet,
+//                 | the factory settings from config.h are returned.
+// Parameter       | String server1: Address of NTP server
+// Parameter       | String server2: Address of NTP server
+// Parameter       | String timezone: time zone
+// Return value    | void
+//---------------------------------------------------------------------------
 void loadTimeConfiguration(
     String &server1,
     String &server2,
@@ -192,10 +215,15 @@ void loadTimeConfiguration(
 }
 
 
-// ------------------------------------------------------------
-// Save time configuration
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void loadTimeConfiguration()
+//---------------------------------------------------------------------------
+// Description     | Save time configuration
+// Parameter       | String server1: Address of NTP server
+// Parameter       | String server2: Address of NTP server
+// Parameter       | String timezone: time zone
+// Return value    | void
+//---------------------------------------------------------------------------
 void saveTimeConfiguration(
     const String &server1,
     const String &server2,
@@ -211,10 +239,13 @@ void saveTimeConfiguration(
 }
 
 
-// ------------------------------------------------------------
-// Reset the time settings to factory defaults
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void resetTimeConfiguration()
+//---------------------------------------------------------------------------
+// Description     | Reset the time settings to factory defaults
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void resetTimeConfiguration()
 {
     preferences.begin("timecfg", false);
@@ -225,10 +256,13 @@ void resetTimeConfiguration()
 }
 
 
-// ------------------------------------------------------------
-// Provide the current time configuration
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void getTimeConfiguration()
+//---------------------------------------------------------------------------
+// Description     | Provide the current time configuration
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void getTimeConfiguration(
     String &server1,
     String &server2,
@@ -238,15 +272,19 @@ void getTimeConfiguration(
 }
 
 
-// ------------------------------------------------------------
-// NTP Diagnostics
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void ntpTimeSyncCallback(struct timeval *tv)
+//---------------------------------------------------------------------------
+// Description     | NTP Diagnostics
+// Parameter       | struct timeval *tv: actual time
+// Return value    | void
+//---------------------------------------------------------------------------
 static void ntpTimeSyncCallback(struct timeval *tv)
 {
     if (DEBUG_SERIAL) Serial.println();
     if (DEBUG_SERIAL) Serial.println(">>> NTP-Synchronisation erfolgreich <<<");
 
+//---------------------------------------------------------------------------
     if (tv != nullptr)
     {
         if (DEBUG_SERIAL) Serial.print("Unix-Zeit: ");
@@ -270,6 +308,13 @@ static void ntpTimeSyncCallback(struct timeval *tv)
 }
 
 
+//---------------------------------------------------------------------------
+// void testNtpDns(const String &serverName)
+//---------------------------------------------------------------------------
+// Description     | Check whether the NTP server is reachable
+// Parameter       | String serverName: Address of NTP server
+// Return value    | void
+//---------------------------------------------------------------------------
 static void testNtpDns(const String &serverName)
 {
     if (serverName.length() == 0)
@@ -298,6 +343,15 @@ static void testNtpDns(const String &serverName)
 }
 
 
+//---------------------------------------------------------------------------
+// bool setSystemTimeFromNtpPacket(const uint8_t *packet, unsigned long roundTripMs)
+//---------------------------------------------------------------------------
+// Description     | set system time from NTP packet
+// Parameter       | uint8_t packet: NTP packet
+// Parameter       | unsigned long roundTripMs: round trip in ms
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 static bool setSystemTimeFromNtpPacket(const uint8_t *packet, unsigned long roundTripMs)
 {
     if (packet == nullptr)
@@ -354,6 +408,15 @@ static bool setSystemTimeFromNtpPacket(const uint8_t *packet, unsigned long roun
 }
 
 
+//---------------------------------------------------------------------------
+// bool testNtpUdpServer(const String &serverName, bool setSystemTime)
+//---------------------------------------------------------------------------
+// Description     | test NTP UDP server
+// Parameter       | String serverName: Name of NTP server
+// Parameter       | bool setSystemTime: set system time 
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 {
     if (serverName.length() == 0)
@@ -544,6 +607,15 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 }
 
 
+//---------------------------------------------------------------------------
+// bool runDirectNtpUdpDiagnostics(const String &server1, const String &server2)
+//---------------------------------------------------------------------------
+// Description     | run direct NTP / UDP diagnostics
+// Parameter       | String server1: server name
+// Parameter       | String server2: server name
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 static bool runDirectNtpUdpDiagnostics(const String &server1, const String &server2)
 {
     if (DEBUG_SERIAL) Serial.println();
@@ -587,6 +659,13 @@ static bool runDirectNtpUdpDiagnostics(const String &server1, const String &serv
 }
 
 
+//---------------------------------------------------------------------------
+// void printNetworkDiagnostics()
+//---------------------------------------------------------------------------
+// Description     | print network diagnostics
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 static void printNetworkDiagnostics()
 {
     if (DEBUG_SERIAL) Serial.println();
@@ -622,10 +701,14 @@ static void printNetworkDiagnostics()
 }
 
 
-// ------------------------------------------------------------
-// Validity of the time source
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// bool isTimeValid()
+//---------------------------------------------------------------------------
+// Description     | Validity of the time source
+// Parameter       | None
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 // Important: getLocalTime() alone is not sufficient here. The ESP32 system clock
 // may still contain an old or retained time after a reboot. For
 // DCF77 output, therefore, only a successful NTP synchronization
@@ -637,10 +720,13 @@ bool isTimeValid()
 }
 
 
-// ------------------------------------------------------------
-// Configure NTP
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void initNTP()
+//---------------------------------------------------------------------------
+// Description     | Configure NTP
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void initNTP()
 {
     if (!wifiConnected)
@@ -681,9 +767,6 @@ void initNTP()
     testNtpDns(server1);
     testNtpDns(server2);
 
-    // v10: No configTime() or automatic SNTP synchronization. The clock is set directly from
-    // a verified UDP NTP response. The time zone is
-    // then set as before using TZ/tzset().
     bool synchronized = runDirectNtpUdpDiagnostics(server1, server2);
 
     setenv("TZ", timezone.c_str(), 1);
@@ -718,11 +801,13 @@ void initNTP()
 }
 
 
-
-// ------------------------------------------------------------
-// Wait for the valid time
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// void waitForTime()
+//---------------------------------------------------------------------------
+// Description     | Wait for the valid time
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
 void waitForTime()
 {
     struct tm timeinfo;
@@ -763,22 +848,41 @@ void waitForTime()
 }
 
 
-
-// ------------------------------------------------------------
-// Status
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// bool isWiFiConnected()
+//---------------------------------------------------------------------------
+// Description     | WIFI conection status
+// Parameter       | None
+// Return value    | bool: 1 -> connected
+//                 | bool: 0 -> not connected
+//---------------------------------------------------------------------------
 bool isWiFiConnected()
 {
     return wifiConnected;
 }
 
 
+//---------------------------------------------------------------------------
+// bool isAccessPointMode()
+//---------------------------------------------------------------------------
+// Description     | check access point mode
+// Parameter       | None
+// Return value    | bool: 1 -> access point mode
+//                 | bool: 0 -> not access point mode
+//---------------------------------------------------------------------------
 bool isAccessPointMode()
 {
     return accessPointMode;
 }
 
+//---------------------------------------------------------------------------
+// bool hasWiFiCredentials()
+//---------------------------------------------------------------------------
+// Description     | check for WIFI credentials available
+// Parameter       | None
+// Return value    | bool: 1 -> credentials available
+//                 | bool: 0 -> no credentials available
+//---------------------------------------------------------------------------
 bool hasWiFiCredentials()
 {
     String ssid;
@@ -787,11 +891,14 @@ bool hasWiFiCredentials()
 }
 
 
-
-// ------------------------------------------------------------
-// NTP synchronization status for the watchdog
-// ------------------------------------------------------------
-
+//---------------------------------------------------------------------------
+// bool isNtpSynchronizationFresh()
+//---------------------------------------------------------------------------
+// Description     | NTP synchronization status for the watchdog
+// Parameter       | None
+// Return value    | bool: 1 -> last NTP synchronisation in configured time window
+//                 | bool: 0 -> no NTP synchronisation in configured time window
+//---------------------------------------------------------------------------
 bool isNtpSynchronizationFresh()
 {
     if (!directTimeSynchronized || !ntpSyncTimestampValid)
@@ -803,6 +910,14 @@ bool isNtpSynchronizationFresh()
     return elapsedSeconds < NTP_SYNC_TIMEOUT_SECONDS;
 }
 
+//---------------------------------------------------------------------------
+// bool refreshNtpSynchronization()
+//---------------------------------------------------------------------------
+// Description     | refresh NTP synchronization
+// Parameter       | None
+// Return value    | bool: 1 -> OK
+//                 | bool: 0 -> NOK
+//---------------------------------------------------------------------------
 bool refreshNtpSynchronization()
 {
     if (WiFi.status() != WL_CONNECTED)
