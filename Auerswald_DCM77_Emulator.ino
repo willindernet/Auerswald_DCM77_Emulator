@@ -3,6 +3,7 @@
 #include "dcf77.h"
 #include "httpserver.h"
 #include "watchdog.h"
+#include "version.h"
 
 #include <Arduino.h>
 #include <time.h>

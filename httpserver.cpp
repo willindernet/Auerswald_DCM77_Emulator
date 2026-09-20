@@ -1,6 +1,7 @@
 #include "httpserver.h"
 #include "ntp.h"
 #include "config.h"
+#include "version.h"
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -196,6 +197,9 @@ static String makePage()
         html += "<br>";
         html += "<b>IP-Adresse:</b> ";
         html += WiFi.softAPIP().toString();
+        html += "<br>";
+        html += "<b>Version:</b> ";
+        html += PROJECT_VERSION;
     }
     else if (isWiFiConnected())
     {
@@ -205,6 +209,9 @@ static String makePage()
         html += "<br>";
         html += "<b>IP-Adresse:</b> ";
         html += WiFi.localIP().toString();
+        html += "<br>";
+        html += "<b>Version:</b> ";
+        html += PROJECT_VERSION;
         html += "<br>";
         html += "<b>Signalstärke:</b> ";
         html += String(WiFi.RSSI());
