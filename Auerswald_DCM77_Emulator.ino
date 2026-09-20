@@ -37,6 +37,17 @@ void loop()
 {
     struct tm now;
 
+    // Flash the DCF77 output while the ESP32 is in access point mode.
+    // The 100 ms / 100 ms pattern indicates that the ESP32 is not connected
+    // to the configured WiFi network.
+    if (isAccessPointMode())
+    {
+        accessPointBlink();
+        return;
+    }
+
+    accessPointIndicatorReset();
+
     // DCF77 may transmit only when NTP synchronization is active.
     if (!isDcf77TransmissionAllowed())
     {

@@ -31,6 +31,40 @@ void initDCF()
 
 
 //---------------------------------------------------------------------------
+// void accessPointBlink()
+//---------------------------------------------------------------------------
+// Description     | Flash DCF output in access point mode
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
+void accessPointBlink()
+{
+    // The 100 ms / 100 ms pattern is deliberately different from a
+    // normal DCF77 pulse and indicates that the ESP32 is in AP mode.
+
+    dcfActive();
+    delay(100);
+
+    dcfInactive();
+    delay(100);
+}
+
+
+//---------------------------------------------------------------------------
+// void accessPointIndicatorReset()
+//---------------------------------------------------------------------------
+// Description     | Reset the access point indicator
+// Parameter       | None
+// Return value    | void
+//---------------------------------------------------------------------------
+void accessPointIndicatorReset()
+{
+    dcfInactive();
+}
+
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // void waitForNextMinute()
 //---------------------------------------------------------------------------
 // Description     | Wait for the next minute to start

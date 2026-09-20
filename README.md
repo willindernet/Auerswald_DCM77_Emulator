@@ -123,15 +123,17 @@ The Wi-Fi credentials are stored persistently in the non-volatile storage (NVS) 
 
 At startup, the ESP32 first attempts to connect using the saved credentials.
 
-If no credentials are stored or the connection cannot be established within the configured timeout, the `DCM77-Setup` is started automatically.
+If no credentials are stored or the connection cannot be established within the configured timeout, the `DCM77-Setup` access point is started automatically.
 
 The access point uses the following address by default:
 
-`http://192.168.4.1`
+http://192.168.4.1
 
 The SSID and password can be entered and saved via the web page. The ESP32 then restarts automatically.
 
 The HTTP server runs in its own FreeRTOS task so that the DCF77 time transmission in the main program is not affected by processing HTTP requests.
+
+If the access point is active, the DCF77 signal output on GPIO12 flashes rapidly to indicate that the ESP32 is not connected to the configured Wi-Fi network.
 
 ## HTTP Server
 
