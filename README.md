@@ -195,6 +195,7 @@ Contains:
 - NTP server factory configuration
 - Time zone factory configuration
 - Access Point name
+- Network hostname and mDNS name
 - Wi-Fi connection timeout
 - Watchdog
 
