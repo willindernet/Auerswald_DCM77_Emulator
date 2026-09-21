@@ -147,8 +147,8 @@ bool connectWiFi()
     if (DEBUG_SERIAL) Serial.print("SSID: ");
     if (DEBUG_SERIAL) Serial.println(ssid);
 
-    WiFi.mode(WIFI_STA);
     WiFi.setHostname(DEVICE_HOSTNAME);
+    WiFi.mode(WIFI_STA);
     WiFi.begin(ssid.c_str(), password.c_str());
 
     if (DEBUG_SERIAL) Serial.print("Verbinde mit WLAN");
