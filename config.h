@@ -19,9 +19,11 @@ static const char* const TIMEZONE_INFO = "CET-1CEST,M3.5.0,M10.5.0/3";
 // Access Point for WIFI-Configuration
 static const char* const AP_SSID = "DCM77-Setup";
 
+// Network hostname and mDNS name
+static const char* const DEVICE_HOSTNAME = "DCM77";
+
 // Time to try connecting to WIFI
 static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;        // 15s
-
 
 // Maximum time since the last successful NTP synchronization
 const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;  // 6h

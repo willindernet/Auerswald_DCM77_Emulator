@@ -3,6 +3,7 @@
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <ESPmDNS.h>
 #include <Preferences.h>
 #include <time.h>
 #include <sys/time.h>
@@ -147,6 +148,7 @@ bool connectWiFi()
     if (DEBUG_SERIAL) Serial.println(ssid);
 
     WiFi.mode(WIFI_STA);
+    WiFi.setHostname(DEVICE_HOSTNAME);
     WiFi.begin(ssid.c_str(), password.c_str());
 
     if (DEBUG_SERIAL) Serial.print("Verbinde mit WLAN");
@@ -168,6 +170,17 @@ bool connectWiFi()
         accessPointMode = false;
 
         if (DEBUG_SERIAL) Serial.println("WLAN verbunden");
+
+        if (MDNS.begin(DEVICE_HOSTNAME))
+        {
+            if (DEBUG_SERIAL) Serial.print("mDNS erreichbar unter: http://");
+            if (DEBUG_SERIAL) Serial.print(DEVICE_HOSTNAME);
+            if (DEBUG_SERIAL) Serial.println(".local");
+        }
+        else
+        {
+            if (DEBUG_SERIAL) Serial.println("mDNS konnte nicht gestartet werden.");
+        }
 
         if (DEBUG_SERIAL) Serial.print("IP-Adresse: ");
         if (DEBUG_SERIAL) Serial.println(WiFi.localIP());

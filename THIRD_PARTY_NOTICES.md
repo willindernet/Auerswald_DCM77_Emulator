@@ -77,6 +77,32 @@ The license notice is included in the upstream source files.
 The project does not copy the Preferences implementation into this
 repository. It uses the library provided by the Arduino-ESP32 installation.
 
+## ESPmDNS
+
+The project uses the `ESPmDNS` library supplied by the Arduino-ESP32 core:
+
+```cpp
+#include <ESPmDNS.h>
+```
+
+The ESPmDNS implementation is distributed under the MIT License.
+
+The upstream source contains the following copyright notices:
+
+Copyright (c) 2013 Tony DiCola
+ESP8266 port (c) 2015 Ivan Grokhotkov
+MDNS-SD Support 2015 Hristo Gochkov
+Extended MDNS-SD support 2016 Lars Englund
+
+Upstream source:
+
+https://github.com/espressif/arduino-esp32/tree/master/libraries/ESPmDNS
+
+The license notice is included in the upstream source file.
+
+The project does not copy the ESPmDNS implementation into this repository.
+It uses the library provided by the Arduino-ESP32 installation.
+
 ## WiFi and UDP networking
 
 The project uses networking functionality supplied by the Arduino-ESP32 core,

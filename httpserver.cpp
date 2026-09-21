@@ -247,51 +247,54 @@ static String makePage()
     html += "</form>";
 
 
-    // --------------------------------------------------------
-    // NTP / Zeitzone
-    // --------------------------------------------------------
+    if (isWiFiConnected())
+    {
+        // --------------------------------------------------------
+        // NTP / Zeitzone
+        // --------------------------------------------------------
 
-    html += "<div class='section'>";
-    html += "<h2>NTP und Zeitzone</h2>";
+        html += "<div class='section'>";
+        html += "<h2>NTP und Zeitzone</h2>";
 
-    html += "<form action='/timesave' method='POST'>";
+        html += "<form action='/timesave' method='POST'>";
 
-    html += "<label>NTP Server 1</label>";
-    html += "<input type='text' name='ntp1' value='";
-    html += htmlEscape(server1);
-    html += "' required>";
+        html += "<label>NTP Server 1</label>";
+        html += "<input type='text' name='ntp1' value='";
+        html += htmlEscape(server1);
+        html += "' required>";
 
-    html += "<label>NTP Server 2</label>";
-    html += "<input type='text' name='ntp2' value='";
-    html += htmlEscape(server2);
-    html += "' required>";
+        html += "<label>NTP Server 2</label>";
+        html += "<input type='text' name='ntp2' value='";
+        html += htmlEscape(server2);
+        html += "' required>";
 
-    html += "<label>Zeitzone</label>";
-    html += "<select name='timezone' onchange='showCustomTimezone(this.value)'>";
-    html += makeTimezoneOptions(timezone);
-    html += "</select>";
+        html += "<label>Zeitzone</label>";
+        html += "<select name='timezone' onchange='showCustomTimezone(this.value)'>";
+        html += makeTimezoneOptions(timezone);
+        html += "</select>";
 
-    html += "<div id='customTimezoneDiv' style='display:none'>";
+        html += "<div id='customTimezoneDiv' style='display:none'>";
 
-    html += "<label>Benutzerdefinierte Zeitzone</label>";
-    html += "<input type='text' id='customTimezone' name='customTimezone' value='";
-    html += htmlEscape(timezone);
-    html += "'>";
+        html += "<label>Benutzerdefinierte Zeitzone</label>";
+        html += "<input type='text' id='customTimezone' name='customTimezone' value='";
+        html += htmlEscape(timezone);
+        html += "'>";
 
-    html += "<p class='hint'>";
-    html += "POSIX-TZ-Zeichenkette, z. B. ";
-    html += "CET-1CEST,M3.5.0,M10.5.0/3";
-    html += "</p>";
+        html += "<p class='hint'>";
+        html += "POSIX-TZ-Zeichenkette, z. B. ";
+        html += "CET-1CEST,M3.5.0,M10.5.0/3";
+        html += "</p>";
 
-    html += "</div>";
+        html += "</div>";
 
-    html += "<button type='submit'>NTP / Zeitzone speichern und Neustart</button>";
+        html += "<button type='submit'>NTP / Zeitzone speichern und Neustart</button>";
 
-    html += "</form>";
+        html += "</form>";
 
-    html += "<form action='/timereset' method='POST'>";
-    html += "<button type='submit'>Werkseinstellungen für NTP / Zeitzone laden</button>";
-    html += "</form>";
+        html += "<form action='/timereset' method='POST'>";
+        html += "<button type='submit'>Werkseinstellungen für NTP / Zeitzone laden</button>";
+        html += "</form>";
+    }
 
     html += "</div>";
 
