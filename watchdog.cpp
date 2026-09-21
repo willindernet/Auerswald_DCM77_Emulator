@@ -86,7 +86,7 @@ static void ntpWatchdogTask(void *parameter)
             tryNtpRecovery();
         }
 
-        vTaskDelay(pdMS_TO_TICKS(NTP_WATCHDOG_INTERVAL_MS));
+        vTaskDelay(pdMS_TO_TICKS(NTP_WATCHDOG_INTERVAL * 60000UL));
     }
 }
 

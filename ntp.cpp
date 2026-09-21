@@ -156,7 +156,7 @@ bool connectWiFi()
     unsigned long startTime = millis();
 
     while (WiFi.status() != WL_CONNECTED &&
-           millis() - startTime < WIFI_CONNECT_TIMEOUT_MS)
+           millis() - startTime < WIFI_CONNECT_TIMEOUT * 1000UL)
     {
         delay(500);
         if (DEBUG_SERIAL) Serial.print(".");
@@ -920,7 +920,7 @@ bool isNtpSynchronizationFresh()
     uint32_t elapsedSeconds =
         (uint32_t)((millis() - lastSuccessfulNtpSync) / 1000UL);
 
-    return elapsedSeconds < NTP_SYNC_TIMEOUT_SECONDS;
+    return elapsedSeconds < NTP_SYNC_TIMEOUT * 60UL * 60UL;
 }
 
 //---------------------------------------------------------------------------

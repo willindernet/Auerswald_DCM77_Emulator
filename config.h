@@ -22,14 +22,14 @@ static const char* const AP_SSID = "DCM77-Setup";
 // Network hostname and mDNS name
 static const char* const DEVICE_HOSTNAME = "DCM77";
 
-// Time to try connecting to WIFI
-static const unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000;        // 15s
+// Time to try connecting to Wi-Fi
+static const unsigned long WIFI_CONNECT_TIMEOUT = 15;       // seconds
 
 // Maximum time since the last successful NTP synchronization
-const unsigned long NTP_SYNC_TIMEOUT_SECONDS = 6UL * 60UL * 60UL;  // 6h
+static const unsigned long NTP_SYNC_TIMEOUT = 6;            // hours
 
-// Check Interval of the NTP Watchdog
-static const unsigned long NTP_WATCHDOG_INTERVAL_MS = 60000UL;     // 1min
+// Check interval of the NTP watchdog
+static const unsigned long NTP_WATCHDOG_INTERVAL = 1;       // minutes
 
 // ============================================================
 // End of configuration
