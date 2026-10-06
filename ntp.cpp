@@ -229,7 +229,7 @@ void loadTimeConfiguration(
 
 
 //---------------------------------------------------------------------------
-// void loadTimeConfiguration()
+// void saveTimeConfiguration()
 //---------------------------------------------------------------------------
 // Description     | Save time configuration
 // Parameter       | String server1: Address of NTP server
