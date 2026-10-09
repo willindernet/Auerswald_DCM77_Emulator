@@ -29,7 +29,6 @@ void setup()
     if (connected)
     {
         initNTP();
-        waitForTime();
     }
 
     initNtpWatchdog();

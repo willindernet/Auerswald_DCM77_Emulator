@@ -610,14 +610,6 @@ void initHttpServer()
 
     httpServer.begin();
 
-
-    if (isAccessPointMode())
-    {
-    }
-    else if (isWiFiConnected())
-    {
-    }
-
     xTaskCreatePinnedToCore(
         httpServerTask,
         "HttpServer",

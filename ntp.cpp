@@ -105,9 +105,6 @@ static void startAccessPoint()
 
 
     }
-    else
-    {
-    }
 }
 
 
@@ -170,11 +167,6 @@ bool connectWiFi()
             Serial.printf("[WiFi] mDNS available at http://%s.local\n", DEVICE_HOSTNAME);
 #endif
         }
-        else
-        {
-        }
-
-
 
         return true;
     }
@@ -271,57 +263,6 @@ void getTimeConfiguration(
     String &timezone)
 {
     loadTimeConfiguration(server1, server2, timezone);
-}
-
-
-//---------------------------------------------------------------------------
-// void ntpTimeSyncCallback(struct timeval *tv)
-//---------------------------------------------------------------------------
-// Description     | NTP Diagnostics
-// Parameter       | struct timeval *tv: actual time
-// Return value    | void
-//---------------------------------------------------------------------------
-static void ntpTimeSyncCallback(struct timeval *tv)
-{
-
-//---------------------------------------------------------------------------
-    if (tv != nullptr)
-    {
-    }
-
-    time_t now = time(nullptr);
-    struct tm localTime;
-
-    localtime_r(&now, &localTime);
-
-}
-
-
-//---------------------------------------------------------------------------
-// void testNtpDns(const String &serverName)
-//---------------------------------------------------------------------------
-// Description     | Check whether the NTP server is reachable
-// Parameter       | String serverName: Address of NTP server
-// Return value    | void
-//---------------------------------------------------------------------------
-static void testNtpDns(const String &serverName)
-{
-    if (serverName.length() == 0)
-    {
-        return;
-    }
-
-    IPAddress resolved;
-
-
-    int result = WiFi.hostByName(serverName.c_str(), resolved);
-
-    if (result == 1)
-    {
-    }
-    else
-    {
-    }
 }
 
 
@@ -493,11 +434,6 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
                 time_t unixTime = (time_t)(seconds - NTP_UNIX_OFFSET);
                 struct tm utcTime;
                 gmtime_r(&unixTime, &utcTime);
-
-
-            }
-            else
-            {
             }
 
             if (mode == 4 && stratum >= 1 && stratum <= 15 && seconds >= NTP_UNIX_OFFSET)
@@ -505,10 +441,7 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 
                 if (setSystemTime)
                 {
-                    if (setSystemTimeFromNtpPacket(packet, roundTripMs))
-                    {
-                    }
-                    else
+                    if (!setSystemTimeFromNtpPacket(packet, roundTripMs))
                     {
                         udp.stop();
                         return false;
@@ -532,15 +465,15 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 
 
 //---------------------------------------------------------------------------
-// bool runDirectNtpUdpDiagnostics(const String &server1, const String &server2)
+// bool synchronizeTimeFromNtp(const String &server1, const String &server2)
 //---------------------------------------------------------------------------
-// Description     | run direct NTP / UDP diagnostics
+// Description     | synchronize NTP time
 // Parameter       | String server1: server name
 // Parameter       | String server2: server name
 // Return value    | bool: 1 -> OK
 //                 | bool: 0 -> NOK
 //---------------------------------------------------------------------------
-static bool runDirectNtpUdpDiagnostics(const String &server1, const String &server2)
+static bool synchronizeTimeFromNtp(const String &server1, const String &server2)
 {
 
     // Server 1 synchronizes the clock. Server 2 serves as a fallback.
@@ -559,46 +492,6 @@ static bool runDirectNtpUdpDiagnostics(const String &server1, const String &serv
     }
 
     return false;
-}
-
-
-//---------------------------------------------------------------------------
-// void printNetworkDiagnostics()
-//---------------------------------------------------------------------------
-// Description     | print network diagnostics
-// Parameter       | None
-// Return value    | void
-//---------------------------------------------------------------------------
-static void printNetworkDiagnostics()
-{
-
-
-
-
-
-
-
-
-
-}
-
-
-//---------------------------------------------------------------------------
-// bool isTimeValid()
-//---------------------------------------------------------------------------
-// Description     | Validity of the time source
-// Parameter       | None
-// Return value    | bool: 1 -> OK
-//                 | bool: 0 -> NOK
-//---------------------------------------------------------------------------
-// Important: getLocalTime() alone is not sufficient here. The ESP32 system clock
-// may still contain an old or retained time after a reboot. For
-// DCF77 output, therefore, only a successful NTP synchronization
-// since the current startup counts.
-
-bool isTimeValid()
-{
-    return directTimeSynchronized;
 }
 
 
@@ -628,57 +521,17 @@ void initNTP()
 
     directTimeSynchronized = false;
 
-
-
-
-
-    printNetworkDiagnostics();
-
-    testNtpDns(server1);
-    testNtpDns(server2);
-
-    bool synchronized = runDirectNtpUdpDiagnostics(server1, server2);
+    bool synchronized = synchronizeTimeFromNtp(server1, server2);
 
     setenv("TZ", timezone.c_str(), 1);
     tzset();
 
     if (synchronized)
     {
-
         time_t now = time(nullptr);
         struct tm localTime;
         localtime_r(&now, &localTime);
-
-
     }
-    else
-    {
-    }
-}
-
-
-//---------------------------------------------------------------------------
-// void waitForTime()
-//---------------------------------------------------------------------------
-// Description     | Wait for the valid time
-// Parameter       | None
-// Return value    | void
-//---------------------------------------------------------------------------
-void waitForTime()
-{
-    struct tm timeinfo;
-
-
-    if (!directTimeSynchronized)
-    {
-        return;
-    }
-
-    if (getLocalTime(&timeinfo, 2000))
-    {
-        return;
-    }
-
 }
 
 
