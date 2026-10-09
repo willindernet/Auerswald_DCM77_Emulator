@@ -610,17 +610,12 @@ void initHttpServer()
 
     httpServer.begin();
 
-    if (DEBUG_SERIAL) Serial.println("HTTP-Server gestartet.");
 
     if (isAccessPointMode())
     {
-        if (DEBUG_SERIAL) Serial.print("Setup-Adresse: http://");
-        if (DEBUG_SERIAL) Serial.println(WiFi.softAPIP());
     }
     else if (isWiFiConnected())
     {
-        if (DEBUG_SERIAL) Serial.print("Webseite: http://");
-        if (DEBUG_SERIAL) Serial.println(WiFi.localIP());
     }
 
     xTaskCreatePinnedToCore(

@@ -22,11 +22,8 @@ static void tryNtpRecovery()
     dcf77TransmissionAllowed = false;
     dcf77TransmissionAbortRequested = true;
     dcfInactive();
-
-#if DEBUG_SERIAL
-    Serial.print("[WATCHDOG] NTP TIMEOUT -> DCF77 OFF, uptime=");
-    Serial.print(millis() / 1000UL);
-    Serial.println(" s");
+#if STATUS_LOGGING
+    Serial.println("[WATCHDOG] NTP synchronization expired; DCF77 transmission stopped");
 #endif
 
     if (!isWiFiConnected() && hasWiFiCredentials())
@@ -38,19 +35,15 @@ static void tryNtpRecovery()
         // telegram currently in progress can never be resumed after a timeout.
         // Only the next loop() cycle clears it before a new telegram.
         dcf77TransmissionAllowed = true;
-
-#if DEBUG_SERIAL
-        Serial.print("[WATCHDOG] NTP RECOVERY OK -> DCF77 READY, uptime=");
-        Serial.print(millis() / 1000UL);
-        Serial.println(" s");
+#if STATUS_LOGGING
+        Serial.println("[WATCHDOG] NTP recovery successful; DCF77 transmission re-enabled for the next telegram");
 #endif
+
     }
     else
     {
-#if DEBUG_SERIAL
-        Serial.print("[WATCHDOG] NTP RECOVERY FAILED, DCF77 OFF, uptime=");
-        Serial.print(millis() / 1000UL);
-        Serial.println(" s");
+#if STATUS_LOGGING
+        Serial.println("[WATCHDOG] NTP recovery failed; DCF77 remains stopped");
 #endif
     }
 }
@@ -74,11 +67,6 @@ static void ntpWatchdogTask(void *parameter)
             if (!dcf77TransmissionAllowed)
             {
                 dcf77TransmissionAllowed = true;
-#if DEBUG_SERIAL
-                Serial.print("[WATCHDOG] NTP fresh -> DCF77 allowed, uptime=");
-                Serial.print(millis() / 1000UL);
-                Serial.println(" s");
-#endif
             }
         }
         else

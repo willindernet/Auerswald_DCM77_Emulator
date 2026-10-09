@@ -5,8 +5,8 @@
 // Start of configuration
 // ============================================================
 
-// seriell debuging
-#define DEBUG_SERIAL 0
+// Status messages for important events
+#define STATUS_LOGGING 0
 
 // DCF77 output
 #define DCF_PIN 12

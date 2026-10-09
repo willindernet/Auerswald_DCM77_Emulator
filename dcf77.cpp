@@ -128,7 +128,6 @@ void sendBit1()
 
     delay(800);
 
-    if (DEBUG_SERIAL) Serial.print("1");
 }
 
 
@@ -152,7 +151,6 @@ void sendBit0()
 
     delay(900);
 
-    if (DEBUG_SERIAL) Serial.print("0");
 }
 
 

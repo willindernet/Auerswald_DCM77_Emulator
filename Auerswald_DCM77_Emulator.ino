@@ -11,10 +11,13 @@
 
 void setup()
 {
+#if STATUS_LOGGING
+    Serial.begin(115200);
+    Serial.printf("\n[START] Auerswald DCM77 Emulator v%s\n", PROJECT_VERSION);
+#endif
     // Initialize the DCF77 output
     initDCF();
 
-    if (DEBUG_SERIAL) Serial.begin(115200);
 
     // Connect to WiFi or start access point
     bool connected = connectWiFi();
@@ -68,6 +71,12 @@ void loop()
     }
 
     // Generate a DCF77 telegram
+#if STATUS_LOGGING
+    Serial.printf("[TIME] %04d-%02d-%02d %02d:%02d:%02d\n",
+                  now.tm_year + 1900, now.tm_mon + 1, now.tm_mday,
+                  now.tm_hour, now.tm_min, now.tm_sec);
+    Serial.println("[DCF77] Generating telegram");
+#endif
     createDCF77Telegram(now);
 
     // Wait for the next minute to start.
@@ -84,6 +93,9 @@ void loop()
     }
 
     // Transmit DCF77 data for 59 seconds.
+#if STATUS_LOGGING
+    Serial.println("[DCF77] Transmission started");
+#endif
     for (int second = 0; second < 59; second++)
     {
         if (dcfBits[second])

@@ -89,9 +89,9 @@ void clearWiFiCredentials()
 //---------------------------------------------------------------------------
 static void startAccessPoint()
 {
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("Keine WLAN-Verbindung möglich.");
-    if (DEBUG_SERIAL) Serial.println("Starte Access Point...");
+#if STATUS_LOGGING
+    Serial.printf("[WiFi] Starting setup access point '%s'\n", AP_SSID);
+#endif
 
     WiFi.mode(WIFI_AP);
 
@@ -99,18 +99,14 @@ static void startAccessPoint()
     {
         accessPointMode = true;
         wifiConnected = false;
+#if STATUS_LOGGING
+        Serial.printf("[WiFi] Access point ready: http://%s\n", WiFi.softAPIP().toString().c_str());
+#endif
 
-        if (DEBUG_SERIAL) Serial.println();
-        if (DEBUG_SERIAL) Serial.println("Access Point gestartet");
-        if (DEBUG_SERIAL) Serial.print("SSID: ");
-        if (DEBUG_SERIAL) Serial.println(AP_SSID);
 
-        if (DEBUG_SERIAL) Serial.print("IP-Adresse: ");
-        if (DEBUG_SERIAL) Serial.println(WiFi.softAPIP());
     }
     else
     {
-        if (DEBUG_SERIAL) Serial.println("Fehler beim Start des Access Points!");
     }
 }
 
@@ -135,23 +131,20 @@ bool connectWiFi()
 
     if (!loadWiFiCredentials(ssid, password))
     {
-        if (DEBUG_SERIAL) Serial.println("Keine WLAN-Zugangsdaten gespeichert.");
 
         startAccessPoint();
 
         return false;
     }
 
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("Gespeicherte WLAN-Konfiguration gefunden.");
-    if (DEBUG_SERIAL) Serial.print("SSID: ");
-    if (DEBUG_SERIAL) Serial.println(ssid);
 
+#if STATUS_LOGGING
+    Serial.printf("[WiFi] Connecting to '%s'\n", ssid.c_str());
+#endif
     WiFi.setHostname(DEVICE_HOSTNAME);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid.c_str(), password.c_str());
 
-    if (DEBUG_SERIAL) Serial.print("Verbinde mit WLAN");
 
     unsigned long startTime = millis();
 
@@ -159,41 +152,37 @@ bool connectWiFi()
            millis() - startTime < WIFI_CONNECT_TIMEOUT * 1000UL)
     {
         delay(500);
-        if (DEBUG_SERIAL) Serial.print(".");
     }
 
-    if (DEBUG_SERIAL) Serial.println();
 
     if (WiFi.status() == WL_CONNECTED)
     {
         wifiConnected = true;
         accessPointMode = false;
+#if STATUS_LOGGING
+        Serial.printf("[WiFi] Connected; IP address: %s\n", WiFi.localIP().toString().c_str());
+#endif
 
-        if (DEBUG_SERIAL) Serial.println("WLAN verbunden");
 
         if (MDNS.begin(DEVICE_HOSTNAME))
         {
-            if (DEBUG_SERIAL) Serial.print("mDNS erreichbar unter: http://");
-            if (DEBUG_SERIAL) Serial.print(DEVICE_HOSTNAME);
-            if (DEBUG_SERIAL) Serial.println(".local");
+#if STATUS_LOGGING
+            Serial.printf("[WiFi] mDNS available at http://%s.local\n", DEVICE_HOSTNAME);
+#endif
         }
         else
         {
-            if (DEBUG_SERIAL) Serial.println("mDNS konnte nicht gestartet werden.");
         }
 
-        if (DEBUG_SERIAL) Serial.print("IP-Adresse: ");
-        if (DEBUG_SERIAL) Serial.println(WiFi.localIP());
 
-        if (DEBUG_SERIAL) Serial.print("Signalstärke: ");
-        if (DEBUG_SERIAL) Serial.print(WiFi.RSSI());
-        if (DEBUG_SERIAL) Serial.println(" dBm");
 
         return true;
     }
 
-    if (DEBUG_SERIAL) Serial.println("WLAN-Verbindung fehlgeschlagen.");
 
+#if STATUS_LOGGING
+    Serial.println("[WiFi] Connection failed; switching to setup access point");
+#endif
     WiFi.disconnect(true);
 
     startAccessPoint();
@@ -294,14 +283,10 @@ void getTimeConfiguration(
 //---------------------------------------------------------------------------
 static void ntpTimeSyncCallback(struct timeval *tv)
 {
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println(">>> NTP-Synchronisation erfolgreich <<<");
 
 //---------------------------------------------------------------------------
     if (tv != nullptr)
     {
-        if (DEBUG_SERIAL) Serial.print("Unix-Zeit: ");
-        if (DEBUG_SERIAL) Serial.println((long)tv->tv_sec);
     }
 
     time_t now = time(nullptr);
@@ -309,15 +294,6 @@ static void ntpTimeSyncCallback(struct timeval *tv)
 
     localtime_r(&now, &localTime);
 
-    if (DEBUG_SERIAL) Serial.printf(
-        "Lokale Zeit: %04d-%02d-%02d %02d:%02d:%02d\n",
-        localTime.tm_year + 1900,
-        localTime.tm_mon + 1,
-        localTime.tm_mday,
-        localTime.tm_hour,
-        localTime.tm_min,
-        localTime.tm_sec
-    );
 }
 
 
@@ -332,26 +308,19 @@ static void testNtpDns(const String &serverName)
 {
     if (serverName.length() == 0)
     {
-        if (DEBUG_SERIAL) Serial.println("DNS-Test: Servername ist leer.");
         return;
     }
 
     IPAddress resolved;
 
-    if (DEBUG_SERIAL) Serial.print("DNS-Test fuer ");
-    if (DEBUG_SERIAL) Serial.print(serverName);
-    if (DEBUG_SERIAL) Serial.print(": ");
 
     int result = WiFi.hostByName(serverName.c_str(), resolved);
 
     if (result == 1)
     {
-        if (DEBUG_SERIAL) Serial.print("OK -> ");
-        if (DEBUG_SERIAL) Serial.println(resolved);
     }
     else
     {
-        if (DEBUG_SERIAL) Serial.println("FEHLER - Name konnte nicht aufgeloest werden.");
     }
 }
 
@@ -410,7 +379,6 @@ static bool setSystemTimeFromNtpPacket(const uint8_t *packet, unsigned long roun
 
     if (settimeofday(&tv, nullptr) != 0)
     {
-        if (DEBUG_SERIAL) Serial.println("Fehler: settimeofday() konnte die Systemzeit nicht setzen.");
         return false;
     }
 
@@ -434,35 +402,23 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 {
     if (serverName.length() == 0)
     {
-        if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: Servername ist leer.");
         return false;
     }
 
     IPAddress serverIP;
 
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("----------------------------------------");
-    if (DEBUG_SERIAL) Serial.print("Direkter UDP-NTP-Test: ");
-    if (DEBUG_SERIAL) Serial.println(serverName);
 
     if (WiFi.hostByName(serverName.c_str(), serverIP) != 1)
     {
-        if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: DNS-Aufloesung fehlgeschlagen.");
-        if (DEBUG_SERIAL) Serial.println("----------------------------------------");
         return false;
     }
 
-    if (DEBUG_SERIAL) Serial.print("NTP-Server IP: ");
-    if (DEBUG_SERIAL) Serial.println(serverIP);
-    if (DEBUG_SERIAL) Serial.println("Sende NTP-Anfrage an UDP Port 123...");
 
     WiFiUDP udp;
     const uint16_t localPort = 2390;
 
     if (!udp.begin(localPort))
     {
-        if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: Lokaler UDP-Port konnte nicht geoeffnet werden.");
-        if (DEBUG_SERIAL) Serial.println("----------------------------------------");
         return false;
     }
 
@@ -473,9 +429,7 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 
     if (!udp.beginPacket(serverIP, 123))
     {
-        if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: beginPacket() fehlgeschlagen.");
         udp.stop();
-        if (DEBUG_SERIAL) Serial.println("----------------------------------------");
         return false;
     }
 
@@ -483,13 +437,10 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 
     if (!udp.endPacket())
     {
-        if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: endPacket() fehlgeschlagen.");
         udp.stop();
-        if (DEBUG_SERIAL) Serial.println("----------------------------------------");
         return false;
     }
 
-    if (DEBUG_SERIAL) Serial.println("NTP-Anfrage gesendet. Warte bis zu 3 Sekunden auf Antwort...");
 
     unsigned long start = millis();
 
@@ -502,14 +453,10 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
             unsigned long receiveMillis = millis();
             unsigned long roundTripMs = receiveMillis - sendMillis;
 
-            if (DEBUG_SERIAL) Serial.print("UDP-NTP-Antwort empfangen, Bytes: ");
-            if (DEBUG_SERIAL) Serial.println(packetSize);
 
             if (packetSize < 48)
             {
-                if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: Antwort ist zu kurz fuer ein NTP-Paket.");
                 udp.stop();
-                if (DEBUG_SERIAL) Serial.println("----------------------------------------");
                 return false;
             }
 
@@ -517,9 +464,7 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 
             if (bytesRead < 48)
             {
-                if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: NTP-Paket konnte nicht vollstaendig gelesen werden.");
                 udp.stop();
-                if (DEBUG_SERIAL) Serial.println("----------------------------------------");
                 return false;
             }
 
@@ -528,14 +473,6 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
             uint8_t mode = packet[0] & 0x07;
             uint8_t stratum = packet[1];
 
-            if (DEBUG_SERIAL) Serial.print("NTP Antwort: LI=");
-            if (DEBUG_SERIAL) Serial.print(li);
-            if (DEBUG_SERIAL) Serial.print(", Version=");
-            if (DEBUG_SERIAL) Serial.print(version);
-            if (DEBUG_SERIAL) Serial.print(", Mode=");
-            if (DEBUG_SERIAL) Serial.print(mode);
-            if (DEBUG_SERIAL) Serial.print(", Stratum=");
-            if (DEBUG_SERIAL) Serial.println(stratum);
 
             uint32_t seconds =
                 ((uint32_t)packet[40] << 24) |
@@ -557,65 +494,39 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
                 struct tm utcTime;
                 gmtime_r(&unixTime, &utcTime);
 
-                if (DEBUG_SERIAL) Serial.printf(
-                    "NTP-Zeitstempel: %04d-%02d-%02d %02d:%02d:%02d UTC\n",
-                    utcTime.tm_year + 1900,
-                    utcTime.tm_mon + 1,
-                    utcTime.tm_mday,
-                    utcTime.tm_hour,
-                    utcTime.tm_min,
-                    utcTime.tm_sec
-                );
 
-                if (DEBUG_SERIAL) Serial.print("NTP-Fraktion: 0x");
-                if (DEBUG_SERIAL) Serial.printf("%08lX\n", (unsigned long)fraction);
-                if (DEBUG_SERIAL) Serial.print("Round Trip Time: ");
-                if (DEBUG_SERIAL) Serial.print(roundTripMs);
-                if (DEBUG_SERIAL) Serial.println(" ms");
             }
             else
             {
-                if (DEBUG_SERIAL) Serial.println("NTP-Zeitstempel ist ungueltig.");
             }
 
             if (mode == 4 && stratum >= 1 && stratum <= 15 && seconds >= NTP_UNIX_OFFSET)
             {
-                if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: *** NTP-ANTWORT IST GÜLTIG ***");
-                if (DEBUG_SERIAL) Serial.println("UDP/123 ist aus dem WLAN erreichbar.");
 
                 if (setSystemTime)
                 {
                     if (setSystemTimeFromNtpPacket(packet, roundTripMs))
                     {
-                        if (DEBUG_SERIAL) Serial.println("Systemzeit wurde direkt aus der NTP-Antwort gesetzt.");
                     }
                     else
                     {
-                        if (DEBUG_SERIAL) Serial.println("Systemzeit konnte NICHT gesetzt werden.");
                         udp.stop();
-                        if (DEBUG_SERIAL) Serial.println("----------------------------------------");
                         return false;
                     }
                 }
 
                 udp.stop();
-                if (DEBUG_SERIAL) Serial.println("----------------------------------------");
                 return true;
             }
 
-            if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: Antwort empfangen, aber nicht als gueltige Serverantwort erkannt.");
             udp.stop();
-            if (DEBUG_SERIAL) Serial.println("----------------------------------------");
             return false;
         }
 
         delay(10);
     }
 
-    if (DEBUG_SERIAL) Serial.println("UDP-NTP-Test: *** KEINE ANTWORT INNERHALB VON 3 SEKUNDEN ***");
-    if (DEBUG_SERIAL) Serial.println("DNS funktioniert, aber UDP/123 hat keine NTP-Antwort geliefert.");
     udp.stop();
-    if (DEBUG_SERIAL) Serial.println("----------------------------------------");
     return false;
 }
 
@@ -631,12 +542,6 @@ static bool testNtpUdpServer(const String &serverName, bool setSystemTime)
 //---------------------------------------------------------------------------
 static bool runDirectNtpUdpDiagnostics(const String &server1, const String &server2)
 {
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("========================================");
-    if (DEBUG_SERIAL) Serial.println("Direkter UDP-NTP-Zeitsynchronisationstest");
-    if (DEBUG_SERIAL) Serial.println("========================================");
-    if (DEBUG_SERIAL) Serial.println("Die Systemzeit wird direkt aus der NTP-Antwort gesetzt.");
-    if (DEBUG_SERIAL) Serial.println("Die ESP32-SNTP-Automatik wird fuer v10 nicht benoetigt.");
 
     // Server 1 synchronizes the clock. Server 2 serves as a fallback.
     bool server1Ok = testNtpUdpServer(server1, true);
@@ -644,30 +549,15 @@ static bool runDirectNtpUdpDiagnostics(const String &server1, const String &serv
 
     if (!server1Ok)
     {
-        if (DEBUG_SERIAL) Serial.println();
-        if (DEBUG_SERIAL) Serial.println("Server 1 konnte die Systemzeit nicht setzen.");
-        if (DEBUG_SERIAL) Serial.println("Versuche Server 2 als NTP-Fallback...");
         server2Ok = testNtpUdpServer(server2, true);
     }
 
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("===== Ergebnis direkter NTP-Synchronisation =====");
-    if (DEBUG_SERIAL) Serial.print("Server 1: ");
-    if (DEBUG_SERIAL) Serial.println(server1Ok ? "ZEIT GESETZT" : "nicht verwendet/fehlgeschlagen");
-    if (DEBUG_SERIAL) Serial.print("Server 2: ");
-    if (DEBUG_SERIAL) Serial.println(server2Ok ? "ZEIT GESETZT" : "nicht verwendet/kein Fallback benoetigt");
 
     if (directTimeSynchronized)
     {
-        if (DEBUG_SERIAL) Serial.println("*** DIREKTE NTP-SYNCHRONISATION ERFOLGREICH ***");
-        if (DEBUG_SERIAL) Serial.println("Die ESP32-Systemzeit ist jetzt gesetzt.");
-        if (DEBUG_SERIAL) Serial.println("================================================");
         return true;
     }
 
-    if (DEBUG_SERIAL) Serial.println("*** NTP-SYNCHRONISATION FEHLGESCHLAGEN ***");
-    if (DEBUG_SERIAL) Serial.println("Kein NTP-Server konnte die Systemzeit setzen.");
-    if (DEBUG_SERIAL) Serial.println("================================================");
     return false;
 }
 
@@ -681,36 +571,15 @@ static bool runDirectNtpUdpDiagnostics(const String &server1, const String &serv
 //---------------------------------------------------------------------------
 static void printNetworkDiagnostics()
 {
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("===== Netzwerk-Diagnose =====");
 
-    if (DEBUG_SERIAL) Serial.print("WiFi.status(): ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.status());
 
-    if (DEBUG_SERIAL) Serial.print("SSID: ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.SSID());
 
-    if (DEBUG_SERIAL) Serial.print("IP-Adresse: ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.localIP());
 
-    if (DEBUG_SERIAL) Serial.print("Gateway: ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.gatewayIP());
 
-    if (DEBUG_SERIAL) Serial.print("Subnetzmaske: ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.subnetMask());
 
-    if (DEBUG_SERIAL) Serial.print("DNS 1: ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.dnsIP(0));
 
-    if (DEBUG_SERIAL) Serial.print("DNS 2: ");
-    if (DEBUG_SERIAL) Serial.println(WiFi.dnsIP(1));
 
-    if (DEBUG_SERIAL) Serial.print("RSSI: ");
-    if (DEBUG_SERIAL) Serial.print(WiFi.RSSI());
-    if (DEBUG_SERIAL) Serial.println(" dBm");
 
-    if (DEBUG_SERIAL) Serial.println("=============================");
-    if (DEBUG_SERIAL) Serial.println();
 }
 
 
@@ -744,7 +613,6 @@ void initNTP()
 {
     if (!wifiConnected)
     {
-        if (DEBUG_SERIAL) Serial.println("NTP wird nicht gestartet - kein WLAN.");
         return;
     }
 
@@ -760,23 +628,12 @@ void initNTP()
 
     directTimeSynchronized = false;
 
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("========================================");
-    if (DEBUG_SERIAL) Serial.println("NTP-Konfiguration v10");
-    if (DEBUG_SERIAL) Serial.println("========================================");
 
-    if (DEBUG_SERIAL) Serial.print("Server 1: ");
-    if (DEBUG_SERIAL) Serial.println(server1);
 
-    if (DEBUG_SERIAL) Serial.print("Server 2: ");
-    if (DEBUG_SERIAL) Serial.println(server2);
 
-    if (DEBUG_SERIAL) Serial.print("Zeitzone: ");
-    if (DEBUG_SERIAL) Serial.println(timezone);
 
     printNetworkDiagnostics();
 
-    if (DEBUG_SERIAL) Serial.println("Teste DNS-Aufloesung der konfigurierten NTP-Server:");
     testNtpDns(server1);
     testNtpDns(server2);
 
@@ -787,29 +644,15 @@ void initNTP()
 
     if (synchronized)
     {
-        if (DEBUG_SERIAL) Serial.println();
-        if (DEBUG_SERIAL) Serial.println("Zeitzone gesetzt:");
-        if (DEBUG_SERIAL) Serial.println(timezone);
 
         time_t now = time(nullptr);
         struct tm localTime;
         localtime_r(&now, &localTime);
 
-        if (DEBUG_SERIAL) Serial.printf(
-            "Aktuelle lokale Zeit: %04d-%02d-%02d %02d:%02d:%02d\n",
-            localTime.tm_year + 1900,
-            localTime.tm_mon + 1,
-            localTime.tm_mday,
-            localTime.tm_hour,
-            localTime.tm_min,
-            localTime.tm_sec
-        );
 
-        if (DEBUG_SERIAL) Serial.println("NTP-Zeitbasis v10 ist bereit.");
     }
     else
     {
-        if (DEBUG_SERIAL) Serial.println("NTP-Zeitbasis v10 konnte nicht initialisiert werden.");
     }
 }
 
@@ -825,39 +668,17 @@ void waitForTime()
 {
     struct tm timeinfo;
 
-    if (DEBUG_SERIAL) Serial.println();
-    if (DEBUG_SERIAL) Serial.println("Pruefe NTP-Zeitbasis...");
 
     if (!directTimeSynchronized)
     {
-        if (DEBUG_SERIAL) Serial.println("Keine direkte NTP-Synchronisation vorhanden.");
-        if (DEBUG_SERIAL) Serial.println("DCF77-Ausgabe wird nicht gestartet.");
         return;
     }
 
     if (getLocalTime(&timeinfo, 2000))
     {
-        if (DEBUG_SERIAL) Serial.println();
-        if (DEBUG_SERIAL) Serial.println("========================================");
-        if (DEBUG_SERIAL) Serial.println("NTP-Zeit verfügbar.");
-        if (DEBUG_SERIAL) Serial.printf(
-            "Lokale Zeit: %04d-%02d-%02d %02d:%02d:%02d\n",
-            timeinfo.tm_year + 1900,
-            timeinfo.tm_mon + 1,
-            timeinfo.tm_mday,
-            timeinfo.tm_hour,
-            timeinfo.tm_min,
-            timeinfo.tm_sec
-        );
-        if (DEBUG_SERIAL) Serial.print("Unix-Zeit: ");
-        if (DEBUG_SERIAL) Serial.println((long)time(nullptr));
-        if (DEBUG_SERIAL) Serial.println("========================================");
         return;
     }
 
-    if (DEBUG_SERIAL) Serial.println("Die Systemzeit wurde gesetzt, aber getLocalTime() liefert keine gueltige Zeit.");
-    if (DEBUG_SERIAL) Serial.print("time(nullptr): ");
-    if (DEBUG_SERIAL) Serial.println((long)time(nullptr));
 }
 
 
