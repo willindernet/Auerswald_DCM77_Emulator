@@ -184,6 +184,88 @@ bool connectWiFi()
 
 
 //---------------------------------------------------------------------------
+// bool reconnectWiFi()
+//---------------------------------------------------------------------------
+// Description     | Retry the configured Wi-Fi connection.
+//                 | If the setup access point is active, keep it available
+//                 | while attempting to reconnect to the configured network.
+// Parameter       | None
+// Return value    | bool: 1 -> connected
+//                 | bool: 0 -> not connected
+//---------------------------------------------------------------------------
+bool reconnectWiFi()
+{
+    String ssid;
+    String password;
+
+    if (!loadWiFiCredentials(ssid, password))
+        return false;
+
+    const bool keepAccessPoint = accessPointMode;
+
+#if STATUS_LOGGING
+    Serial.printf("[WiFi] Reconnecting to '%s'\n", ssid.c_str());
+#endif
+
+    WiFi.setHostname(DEVICE_HOSTNAME);
+    WiFi.mode(keepAccessPoint ? WIFI_AP_STA : WIFI_STA);
+    WiFi.begin(ssid.c_str(), password.c_str());
+
+    const unsigned long startTime = millis();
+
+    while (WiFi.status() != WL_CONNECTED &&
+           millis() - startTime < WIFI_CONNECT_TIMEOUT * 1000UL)
+    {
+        delay(250);
+    }
+
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        wifiConnected = true;
+
+        if (keepAccessPoint)
+        {
+            WiFi.softAPdisconnect(true);
+            WiFi.mode(WIFI_STA);
+            accessPointMode = false;
+        }
+
+        MDNS.end();
+        if (MDNS.begin(DEVICE_HOSTNAME))
+        {
+#if STATUS_LOGGING
+            Serial.printf("[WiFi] Reconnected; IP address: %s\n",
+                          WiFi.localIP().toString().c_str());
+            Serial.printf("[WiFi] mDNS available at http://%s.local\n",
+                          DEVICE_HOSTNAME);
+#endif
+        }
+
+        return true;
+    }
+
+    wifiConnected = false;
+
+    if (keepAccessPoint)
+    {
+        // Leave the setup AP running so the device remains configurable.
+        WiFi.mode(WIFI_AP_STA);
+    }
+    else
+    {
+        WiFi.disconnect(false, false);
+        startAccessPoint();
+    }
+
+#if STATUS_LOGGING
+    Serial.println("[WiFi] Reconnection failed");
+#endif
+
+    return false;
+}
+
+
+//---------------------------------------------------------------------------
 // void loadTimeConfiguration()
 //---------------------------------------------------------------------------
 // Description     | Load time configuration from NVS
@@ -545,6 +627,7 @@ void initNTP()
 //---------------------------------------------------------------------------
 bool isWiFiConnected()
 {
+    wifiConnected = (WiFi.status() == WL_CONNECTED);
     return wifiConnected;
 }
 

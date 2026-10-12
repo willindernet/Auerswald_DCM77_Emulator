@@ -62,6 +62,16 @@ static void ntpWatchdogTask(void *parameter)
 
     for (;;)
     {
+        // Retry Wi-Fi independently of the NTP freshness timeout. This lets
+        // the device recover promptly when the router becomes available again.
+        if (!isWiFiConnected() && hasWiFiCredentials())
+        {
+            if (reconnectWiFi() && !isNtpSynchronizationFresh())
+            {
+                refreshNtpSynchronization();
+            }
+        }
+
         if (isNtpSynchronizationFresh())
         {
             if (!dcf77TransmissionAllowed)
