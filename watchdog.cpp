@@ -16,38 +16,47 @@ static volatile bool dcf77TransmissionAbortRequested = false;
 // Parameter       | None
 // Return value    | void
 //---------------------------------------------------------------------------
+static bool ntpExpiryReported = false;
+static bool ntpRecoveryFailureReported = false;
+
 static void tryNtpRecovery()
 {
-    // NTP is no longer up to date: Disable DCF77 immediately.
+    // NTP is no longer fresh: stop DCF77 output and abort any active telegram.
     dcf77TransmissionAllowed = false;
     dcf77TransmissionAbortRequested = true;
     dcfInactive();
+
 #if STATUS_LOGGING
-    Serial.println("[WATCHDOG] NTP synchronization expired; DCF77 transmission stopped");
+    if (!ntpExpiryReported)
+    {
+        Serial.println("[WATCHDOG] NTP synchronization expired; DCF77 transmission stopped");
+        ntpExpiryReported = true;
+    }
 #endif
 
-    if (!isWiFiConnected() && hasWiFiCredentials())
-        connectWiFi();
-
+    // Wi-Fi reconnection is handled once, centrally, in ntpWatchdogTask().
+    // This function only attempts NTP synchronization when Wi-Fi is available.
     if (isWiFiConnected() && refreshNtpSynchronization())
     {
-        // The abort flag is intentionally left set. This ensures that a
-        // telegram currently in progress can never be resumed after a timeout.
-        // Only the next loop() cycle clears it before a new telegram.
         dcf77TransmissionAllowed = true;
-#if STATUS_LOGGING
-        Serial.println("[WATCHDOG] NTP recovery successful; DCF77 transmission re-enabled for the next telegram");
-#endif
+        ntpExpiryReported = false;
+        ntpRecoveryFailureReported = false;
 
+#if STATUS_LOGGING
+        Serial.println("[WATCHDOG] NTP recovery successful; DCF77 will resume with the next telegram");
+#endif
     }
     else
     {
 #if STATUS_LOGGING
-        Serial.println("[WATCHDOG] NTP recovery failed; DCF77 remains stopped");
+        if (!ntpRecoveryFailureReported)
+        {
+            Serial.println("[WATCHDOG] NTP recovery failed; DCF77 remains stopped");
+            ntpRecoveryFailureReported = true;
+        }
 #endif
     }
 }
-
 
 //---------------------------------------------------------------------------
 // void ntpWatchdogTask(void *parameter)
@@ -66,10 +75,9 @@ static void ntpWatchdogTask(void *parameter)
         // the device recover promptly when the router becomes available again.
         if (!isWiFiConnected() && hasWiFiCredentials())
         {
-            if (reconnectWiFi() && !isNtpSynchronizationFresh())
-            {
-                refreshNtpSynchronization();
-            }
+            // Reconnect in one place only. If NTP is stale, the recovery
+            // branch below will perform exactly one synchronization attempt.
+            reconnectWiFi();
         }
 
         if (isNtpSynchronizationFresh())
@@ -101,10 +109,24 @@ void initNtpWatchdog()
     if (ntpWatchdogTaskHandle != nullptr)
         return;
 
-    xTaskCreatePinnedToCore(
+    BaseType_t result = xTaskCreatePinnedToCore(
         ntpWatchdogTask, "NTPWatchdog", 4096, nullptr, 1,
         &ntpWatchdogTaskHandle, 0
     );
+
+    if (result != pdPASS)
+    {
+        ntpWatchdogTaskHandle = nullptr;
+#if STATUS_LOGGING
+        Serial.println("[WATCHDOG] ERROR: failed to create watchdog task");
+#endif
+    }
+#if STATUS_LOGGING
+    else
+    {
+        Serial.println("[WATCHDOG] Task started");
+    }
+#endif
 }
 
 

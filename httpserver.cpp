@@ -610,7 +610,7 @@ void initHttpServer()
 
     httpServer.begin();
 
-    xTaskCreatePinnedToCore(
+    BaseType_t result = xTaskCreatePinnedToCore(
         httpServerTask,
         "HttpServer",
         8192,
@@ -619,4 +619,18 @@ void initHttpServer()
         &httpServerTaskHandle,
         0
     );
+
+    if (result != pdPASS)
+    {
+        httpServerTaskHandle = nullptr;
+#if STATUS_LOGGING
+        Serial.println("[HTTP] ERROR: failed to create HTTP server task");
+#endif
+    }
+#if STATUS_LOGGING
+    else
+    {
+        Serial.println("[HTTP] Server task started");
+    }
+#endif
 }

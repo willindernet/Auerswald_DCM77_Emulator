@@ -207,8 +207,15 @@ bool reconnectWiFi()
     Serial.printf("[WiFi] Reconnecting to '%s'\n", ssid.c_str());
 #endif
 
+    // A previous connection attempt may still be active after a link loss.
+    // Stop that STA attempt before changing mode or applying credentials.
+    // This preserves stored credentials and does not explicitly shut down AP.
+    WiFi.disconnect(false, false);
+    delay(300);
+
     WiFi.setHostname(DEVICE_HOSTNAME);
     WiFi.mode(keepAccessPoint ? WIFI_AP_STA : WIFI_STA);
+    delay(100);
     WiFi.begin(ssid.c_str(), password.c_str());
 
     const unsigned long startTime = millis();
@@ -246,6 +253,10 @@ bool reconnectWiFi()
 
     wifiConnected = false;
 
+    // Stop the failed STA attempt before the next watchdog cycle.
+    WiFi.disconnect(false, false);
+    delay(200);
+
     if (keepAccessPoint)
     {
         // Leave the setup AP running so the device remains configurable.
@@ -253,7 +264,6 @@ bool reconnectWiFi()
     }
     else
     {
-        WiFi.disconnect(false, false);
         startAccessPoint();
     }
 
@@ -608,12 +618,28 @@ void initNTP()
     setenv("TZ", timezone.c_str(), 1);
     tzset();
 
+#if STATUS_LOGGING
     if (synchronized)
     {
         time_t now = time(nullptr);
         struct tm localTime;
-        localtime_r(&now, &localTime);
+        if (localtime_r(&now, &localTime) != nullptr)
+        {
+            Serial.printf("[NTP] Synchronization successful: %04d-%02d-%02d %02d:%02d:%02d\n",
+                          localTime.tm_year + 1900, localTime.tm_mon + 1,
+                          localTime.tm_mday, localTime.tm_hour,
+                          localTime.tm_min, localTime.tm_sec);
+        }
+        else
+        {
+            Serial.println("[NTP] Synchronization successful");
+        }
     }
+    else
+    {
+        Serial.println("[NTP] Synchronization failed");
+    }
+#endif
 }
 
 
